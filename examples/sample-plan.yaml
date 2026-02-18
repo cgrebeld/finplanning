@@ -1,0 +1,242 @@
+# Schema version for this plan file format.
+schema_version: 1
+
+# Household-level metadata.
+household:
+  # Unique household identifier.
+  id: hh-1
+  # Display name shown in the UI.
+  name: "Smith Family Plan"
+  # Province code used for tax rules (Phase 1 supports BC).
+  province: BC
+
+# People in the household. IDs are referenced by accounts/income items.
+persons:
+  - # Unique person identifier.
+    id: john
+    # Full display name.
+    name: "John Smith"
+    # Birth year (YYYY).
+    birth_date: 1970
+    # Assumed age at death for projection horizon.
+    life_expectancy: 95
+    # Age CPP starts.
+    cpp_start_age: 65
+    # Age OAS starts.
+    oas_start_age: 65
+
+  - id: jane # Unique person identifier.
+    name: "Jane Smith" # Full display name.
+    birth_date: 1972 # Birth year (YYYY).
+    life_expectancy: 95 # Assumed age at death for projection horizon.
+    cpp_start_age: 65 # Age CPP starts.
+    oas_start_age: 70 # Age OAS starts.
+
+# Investment and registered accounts.
+accounts:
+  - # Unique account identifier.
+    id: john-rrsp
+    # Account owner ID (or `joint` for shared accounts).
+    owner: john
+    # Human-readable account label.
+    name: "Questrade RRSP"
+    # Account type enum (RRSP, TFSA, NON_REGISTERED, etc.).
+    type: RRSP
+    # Current account market value.
+    balance: 450000
+    # Tax cost basis (used mainly for non-registered accounts).
+    cost_basis: 300000
+    # Target allocation used for return modeling.
+    asset_mix:
+      # Equity allocation ratio.
+      equity: 0.60
+      # Fixed-income allocation ratio.
+      fixed_income: 0.35
+      # Cash allocation ratio.
+      cash: 0.05
+
+  - id: john-tfsa # Unique account identifier.
+    owner: john # Account owner ID.
+    name: "TFSA" # Human-readable account label.
+    type: TFSA # Account type enum.
+    balance: 95000 # Current account market value.
+    cost_basis: 45000 # Tax cost basis.
+    asset_mix:
+      equity: 0.80 # Equity allocation ratio.
+      fixed_income: 0.20 # Fixed-income allocation ratio.
+
+  - id: jane-rrsp # Unique account identifier.
+    owner: jane # Account owner ID.
+    name: "Work RRSP" # Human-readable account label.
+    type: RRSP # Account type enum.
+    balance: 280000 # Current account market value.
+    cost_basis: 190000 # Tax cost basis.
+    asset_mix:
+      equity: 0.50 # Equity allocation ratio.
+      fixed_income: 0.50 # Fixed-income allocation ratio.
+
+  - id: joint-nonreg # Unique account identifier.
+    owner: joint # Shared account ownership.
+    name: "Non-Registered Investment" # Human-readable account label.
+    type: NON_REGISTERED # Taxable account type.
+    balance: 150000 # Current account market value.
+    cost_basis: 85000 # Tax cost basis for capital gains calculations.
+    asset_mix:
+      equity: 0.70 # Equity allocation ratio.
+      fixed_income: 0.30 # Fixed-income allocation ratio.
+
+# Ongoing income sources.
+income:
+  - # Unique income item identifier.
+    id: john-salary
+    # Owner person ID.
+    owner: john
+    # Display label.
+    name: "Tech Corp Salary"
+    # Income type enum (EMPLOYMENT, PENSION, CPP, OAS, etc.).
+    type: EMPLOYMENT
+    # Gross annual amount in today's dollars.
+    annual_amount: 145000
+    # First year income is active.
+    start_date: 2020
+    # Last year income is active (controls when employment income stops).
+    end_date: 2032
+
+  - id: jane-salary # Unique income item identifier.
+    owner: jane # Owner person ID.
+    name: "Hospital Salary" # Display label.
+    type: EMPLOYMENT # Income type enum.
+    annual_amount: 95000 # Gross annual amount in today's dollars.
+    start_date: 2020 # First active year.
+    end_date: 2032 # Last active year (controls when employment income stops).
+
+  - id: jane-pension # Unique income item identifier.
+    owner: jane # Owner person ID.
+    name: "Hospital DB Pension" # Display label.
+    type: PENSION # Income type enum.
+    annual_amount: 35000 # Gross annual amount in today's dollars.
+    start_date: 2032 # First active year.
+    is_eligible_for_splitting: true # Whether pension income splitting can apply.
+
+# Ongoing expense items.
+expenses:
+  - # Unique expense item identifier.
+    id: essential
+    # Display label.
+    name: "Essential Living"
+    # Expense category enum used for inflation assumptions.
+    category: ESSENTIAL
+    # Annual expense amount in today's dollars.
+    annual_amount: 88000
+
+  - id: travel # Unique expense item identifier.
+    name: "Travel & Leisure" # Display label.
+    category: DISCRETIONARY # Expense category enum.
+    annual_amount: 25000 # Annual expense amount in today's dollars.
+    end_date: 2050 # Optional stop year for this expense stream.
+
+  - id: healthcare # Unique expense item identifier.
+    name: "Healthcare & Insurance" # Display label.
+    category: HEALTHCARE # Expense category enum.
+    annual_amount: 5000 # Annual expense amount in today's dollars.
+
+# One-off events that occur in a specific year.
+one_time_events:
+  - # Unique one-time event identifier.
+    id: roof
+    # Display label.
+    name: "New Roof"
+    # Event type: `expense` or `income`.
+    type: expense
+    # Event amount in dollars.
+    amount: 65000
+    # Calendar year event occurs.
+    year: 2028
+
+  - id: rental-sale # Unique one-time event identifier.
+    name: "Sell Rental Property" # Display label.
+    type: income # Event type.
+    amount: 800000 # Event amount in dollars.
+    year: 2030 # Calendar year event occurs.
+
+# Repeating expense events (every N years).
+recurring_expenses:
+  - # Unique recurring expense identifier.
+    id: new-car
+    # Display label.
+    name: "New Car Purchase"
+    # Amount charged each recurrence.
+    amount: 40000
+    # First year recurrence begins.
+    start_year: 2026
+    # Repeat cadence in years.
+    period_years: 6
+
+  - id: home-reno # Unique recurring expense identifier.
+    name: "Home Renovation" # Display label.
+    amount: 15000 # Amount charged each recurrence.
+    start_year: 2028 # First recurrence year.
+    period_years: 10 # Repeat cadence in years.
+    end_year: 2050 # Optional final year to stop recurring charges.
+
+# Modeling assumptions used across the projection.
+assumptions:
+  # Expected nominal returns by asset class.
+  returns:
+    equity: 0.06 # Annual equity return assumption.
+    fixed_income: 0.03 # Annual fixed income return assumption.
+    cash: 0.02 # Annual cash return assumption.
+  # Single inflation rate (healthcare gets +0.02 premium automatically).
+  inflation: 0.02
+  # Withdrawal waterfall order for covering spending gaps.
+  withdrawal_order:
+    - NON_REGISTERED # Then taxable non-registered withdrawals.
+    - RRSP # Then RRSP/RRIF withdrawals.
+    - TFSA # TFSA last by default.
+  # Simplified portfolio-income assumptions used to estimate taxable investment income.
+  investment_income_model:
+    equity_dividend_yield: 0.02 # Estimated dividend yield on equity allocation.
+    fixed_income_distribution_yield: 0.035 # Estimated interest/distribution yield on fixed income.
+    cash_interest_yield: 0.02 # Estimated taxable interest yield on cash allocation.
+    capital_gains_inclusion_rate: 0.5 # Taxable fraction of realized capital gains in non-reg withdrawals.
+  # Registered account contribution room assumptions.
+  contribution_limits:
+    rrsp_contribution_room_by_owner:
+      john: 125000 # Current RRSP room for John.
+      jane: 90000 # Current RRSP room for Jane.
+  # Optional glide path configuration by age.
+  glide_path:
+    equity_by_age:
+      55: 0.70 # Target equity allocation at age 55.
+      65: 0.60 # Target equity allocation at age 65.
+      75: 0.50 # Target equity allocation at age 75.
+      85: 0.40 # Target equity allocation at age 85.
+      95: 0.30 # Target equity allocation at age 95.
+  # Optional Black Swan stress test assumptions.
+  black_swan:
+    equity_shock_pct: -0.25 # Shock-year equity drop (e.g., -0.25 = -25%).
+    flat_return_years: 3 # Years of zero equity return after the shock.
+    trigger_year: 2040 # Calendar year when shock is applied.
+
+# Scenario list (up to 5). Exactly one should be the base case.
+scenarios:
+  - # Scenario identifier used by the app and override map.
+    id: base
+    # Display name shown in scenario tabs/selectors.
+    name: "Base Case"
+    # Marks this scenario as the canonical base plan.
+    is_base_case: true
+
+  - id: early-retire # Scenario identifier.
+    name: "Retire at 58" # Display name.
+    is_base_case: false # Non-base scenario.
+
+# Per-scenario override payloads keyed by scenario ID.
+scenario_overrides:
+  early-retire:
+    assumptions:
+      returns:
+        equity_return: 0.05 # Override for scenario-specific equity return assumption.
+    expenses:
+      - id: essential # Expense ID to override.
+        annual_amount: 95000 # Scenario-specific replacement value.

@@ -1,0 +1,56 @@
+name: Update Core Wheel
+on:
+  repository_dispatch:
+    types: [core-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Core version tag (e.g. v0.1.0). Leave blank for latest."
+        required: false
+
+jobs:
+  update-wheel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
+        run: |
+          VERSION="${INPUT_VERSION:-$DISPATCH_VERSION}"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(gh release view --repo cgrebeld/finplanning-engine --json tagName -q .tagName)
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download wheel from private release
+        run: |
+          mkdir -p wheels
+          rm -f wheels/finplanning_core-*.whl
+          gh release download "${{ steps.version.outputs.version }}" \
+            --repo cgrebeld/finplanning-engine \
+            --pattern "finplanning_core-*.whl" \
+            --dir wheels/
+        env:
+          GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
+
+      - name: Update requirements.txt
+        run: |
+          WHEEL_NAME=$(ls wheels/finplanning_core-*.whl | head -1 | xargs basename)
+          sed -i "s|./wheels/finplanning_core-.*\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
+
+      - name: Commit and tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add wheels/ requirements.txt
+          git commit -m "chore: update finplanning-core to ${VERSION}"
+          git tag "core-${VERSION}"
+          git push origin main --tags
