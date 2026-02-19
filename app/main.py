@@ -259,7 +259,7 @@ federal + provincial (BC) tax modelling with bracket indexation.
             "Run",
             disabled=mc_running,
             type="primary",
-            use_container_width=True,
+            width="container",
             help="A Monte Carlo run is already in progress." if mc_running else None,
         ):
             mc_progress = st.progress(0.0, text="Simulating... 0%")

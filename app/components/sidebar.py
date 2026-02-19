@@ -45,7 +45,7 @@ def render_sidebar() -> None:
                 label_visibility="collapsed",
             )
         with col_load:
-            if st.button("Load", type="primary", use_container_width=True):
+            if st.button("Load", type="primary", width="container"):
                 load_service(plan_path)
 
         service: PlanningService | None = st.session_state.get("service")
