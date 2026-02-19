@@ -67,28 +67,44 @@ if __name__ == "__main__":
 
     service: PlanningService | None = st.session_state.get("service")
     if service is None:
-        st.header("Canadian Financial Planner")
+        st.title("Canadian Financial Planner")
         st.markdown(
-            """
-A comprehensive retirement projection tool for Canadian households.
-
-**Load a YAML plan from the sidebar to get started.** Your plan defines income sources,
-accounts (RRSP, TFSA, non-registered), expenses, and assumptions — the engine does the rest.
-
-**What you get:**
-- **Cash-flow projections** — year-by-year income, expenses, taxes, withdrawals, and net worth
-- **Gap analysis** — compare desired vs. sustainable spending levels
-- **Interactive net worth chart** — track account balances across your full retirement horizon
-- **Cash-flow Sankey diagrams** — visualize money flows for any selected year
-- **Tax heatmaps** — see marginal and effective tax rates over time
-- **Monte Carlo simulation** — stress-test your plan with thousands of randomized return scenarios
-- **Scenario comparison** — clone and tweak plans to compare "what if" alternatives
-- **Excel export** — download detailed projections as an XLSX workbook
-
-Supports CPP/OAS benefits, RRIF conversions, glide-path asset allocation, and full
-federal + provincial (BC) tax modelling with bracket indexation.
-"""
+            "Model your financial future — income, taxes, investments, and spending "
+            "— across any time horizon."
         )
+        st.markdown("")
+
+        features = [
+            ("📊", "Cash-Flow Projections", "Year-by-year income, expenses, taxes, and net worth"),
+            ("⚖️", "Gap Analysis", "Compare desired vs. sustainable spending over your plan horizon"),
+            ("📈", "Net Worth Tracking", "Watch account balances evolve across your full financial horizon"),
+            ("🔀", "Sankey Diagrams", "Visualize where money comes from and where it goes, year by year"),
+            ("🔥", "Tax Heatmaps", "See marginal and effective tax rates across your entire plan"),
+            ("🎲", "Monte Carlo", "Stress-test your plan with thousands of randomized return scenarios"),
+            ("🔬", "Scenario Comparison", "Clone and tweak plans to explore 'what if' alternatives"),
+            ("📥", "Excel Export", "Download full projections as a detailed XLSX workbook"),
+        ]
+
+        row1_cols = st.columns(4)
+        for col, (icon, name, desc) in zip(row1_cols, features[:4]):
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"**{icon} {name}**")
+                    st.caption(desc)
+
+        row2_cols = st.columns(4)
+        for col, (icon, name, desc) in zip(row2_cols, features[4:]):
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"**{icon} {name}**")
+                    st.caption(desc)
+
+        st.markdown("")
+        st.caption(
+            "Supports CPP/OAS benefits, RRIF conversions, glide-path asset allocation, "
+            "and full federal + provincial (BC) tax modelling with bracket indexation."
+        )
+        st.info("← Select a plan file in the sidebar and click **Load** to begin.", icon="👈")
         st.stop()
 
     projection: ProjectionResult | None = st.session_state.get("projection")
@@ -259,7 +275,6 @@ federal + provincial (BC) tax modelling with bracket indexation.
             "Run",
             disabled=mc_running,
             type="primary",
-            width="container",
             help="A Monte Carlo run is already in progress." if mc_running else None,
         ):
             mc_progress = st.progress(0.0, text="Simulating... 0%")

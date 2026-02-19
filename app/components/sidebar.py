@@ -35,18 +35,15 @@ def render_sidebar() -> None:
         options = _list_example_plans()
         current = st.session_state.get("plan_path") or DEFAULT_PLAN_PATH
         default_index = options.index(current) if current in options else 0
-        col_path, col_load = st.columns([4, 1], gap="small")
-        with col_path:
-            plan_path = st.selectbox(
-                "Plan file",
-                options,
-                index=default_index,
-                key="plan_path_input",
-                label_visibility="collapsed",
-            )
-        with col_load:
-            if st.button("Load", type="primary", width="container"):
-                load_service(plan_path)
+        plan_path = st.selectbox(
+            "Plan file",
+            options,
+            index=default_index,
+            key="plan_path_input",
+            label_visibility="collapsed",
+        )
+        if st.button("Load", type="primary"):
+            load_service(plan_path)
 
         service: PlanningService | None = st.session_state.get("service")
         if service is None:
