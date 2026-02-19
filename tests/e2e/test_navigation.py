@@ -32,8 +32,12 @@ def _run_projection(page: Page) -> None:
 
 
 def _click_nav(page: Page, section: str) -> None:
-    """Select a section via the sidebar navigation radio."""
-    page.locator('[data-testid="stRadio"]').get_by_text(section, exact=True).click()
+    """Select a section via the sidebar navigation radio.
+
+    The radio labels are formatted as "🔀 Cash Flow" etc., so we match by
+    substring (no exact=True) while still scoping to the stRadio widget.
+    """
+    page.locator('[data-testid="stRadio"]').get_by_text(section).click()
     page.wait_for_timeout(_WAIT_MS)
 
 

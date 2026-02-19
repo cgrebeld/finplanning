@@ -107,6 +107,8 @@ def render_monte_carlo_section() -> None:
                 progress_bar=mc_progress,
             )
             mc_progress.empty()
+            st.rerun()
 
+    mc_result = st.session_state.get("mc_result")
     if mc_result is not None and service is not None:
         render_monte_carlo_view(mc_result, service.plan)

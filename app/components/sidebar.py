@@ -22,6 +22,16 @@ NAV_SECTIONS = [
     "Data & Export",
 ]
 
+_NAV_ICONS = {
+    "Edit Plan":    "✏️",
+    "Overview":     "⚖️",
+    "Cash Flow":    "🔀",
+    "Net Worth":    "📈",
+    "Tax Analysis": "🔥",
+    "Monte Carlo":  "🎲",
+    "Data & Export":"📥",
+}
+
 
 def _list_example_plans() -> list[str]:
     """Return sorted paths of YAML plan files in examples/."""
@@ -62,6 +72,7 @@ def render_sidebar() -> None:
             options=NAV_SECTIONS,
             key="nav_section",
             label_visibility="collapsed",
+            format_func=lambda s: f"{_NAV_ICONS.get(s, '')} {s}",
         )
 
         st.divider()
