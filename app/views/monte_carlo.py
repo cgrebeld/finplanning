@@ -154,7 +154,7 @@ def _render_fan_chart(result: MonteCarloResult, plan: HouseholdPlan) -> None:
         height=500,
     )
 
-    st.plotly_chart(fig, width="container")
+    st.plotly_chart(fig, width="stretch")
 
 
 def _fmt(value: float) -> str:

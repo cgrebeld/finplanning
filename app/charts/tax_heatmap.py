@@ -68,4 +68,4 @@ def render_tax_heatmap(projection: ProjectionResult, plan: HouseholdPlan, select
         "withdrawal strategies could reduce your overall tax burden.",
     )
     fig = build_tax_heatmap_figure(projection, plan, selected_year=selected_year)
-    st.plotly_chart(fig, width="container")
+    st.plotly_chart(fig, width="stretch")

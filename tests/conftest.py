@@ -3,9 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import time
+from pathlib import Path
 
 import pytest
+
+# Resolve the venv streamlit binary relative to the running interpreter so the
+# fixture works regardless of whether the venv is activated.
+_VENV_BIN = Path(sys.executable).parent
+_STREAMLIT = str(_VENV_BIN / "streamlit")
 
 
 @pytest.fixture(scope="session")
@@ -13,7 +20,7 @@ def streamlit_server():
     """Launch the Streamlit app on port 8502 and yield the base URL."""
     proc = subprocess.Popen(
         [
-            "streamlit",
+            _STREAMLIT,
             "run",
             "app/main.py",
             "--server.headless=true",

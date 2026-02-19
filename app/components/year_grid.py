@@ -40,7 +40,7 @@ def render_year_grid(projection: ProjectionResult, plan: HouseholdPlan, selected
     height = min(len(df) * 35 + 50, 800)
     st.dataframe(
         styled,
-        width="container",
+        use_container_width=True,
         hide_index=True,
         height=height,
     )

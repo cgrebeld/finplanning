@@ -296,4 +296,4 @@ def render_cash_flow_sankey(
         "proportional to dollar amounts. Use the year slider to explore different years.",
     )
     fig = build_cash_flow_sankey_figure(projection, plan, selected_year, zoom_scale=zoom_scale)
-    st.plotly_chart(fig, width="container")
+    st.plotly_chart(fig, width="stretch")

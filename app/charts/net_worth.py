@@ -128,4 +128,4 @@ def render_net_worth_chart(projection: ProjectionResult, plan: HouseholdPlan, se
         "individual account values at each age.",
     )
     fig = build_net_worth_figure(projection, plan, selected_year=selected_year)
-    st.plotly_chart(fig, width="container", key="net_worth_chart")
+    st.plotly_chart(fig, width="stretch", key="net_worth_chart")

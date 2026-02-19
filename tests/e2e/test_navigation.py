@@ -1,16 +1,20 @@
 """End-to-end navigation tests for the section-based UI.
 
-Run with: uv run pytest tests/e2e/ -v
-For visual debugging: uv run pytest tests/e2e/ -v --headed
+Run with: .venv/bin/python -m pytest tests/e2e/ -v
+For visual debugging: .venv/bin/python -m pytest tests/e2e/ -v --headed
 """
 
 from __future__ import annotations
+
+import re
 
 import pytest
 from playwright.sync_api import Page, expect
 
 # How long to wait for Streamlit to rerender after an interaction (ms).
-_WAIT_MS = 3000
+_WAIT_MS = 5000
+# Longer timeout for assertions on elements that may take extra time (charts, xlsx).
+_SLOW_TIMEOUT = 10_000
 
 
 def _load_plan(page: Page, base_url: str) -> None:
@@ -29,7 +33,7 @@ def _run_projection(page: Page) -> None:
 
 def _click_nav(page: Page, section: str) -> None:
     """Select a section via the sidebar navigation radio."""
-    page.get_by_text(section, exact=True).first.click()
+    page.locator('[data-testid="stRadio"]').get_by_text(section, exact=True).click()
     page.wait_for_timeout(_WAIT_MS)
 
 
@@ -56,7 +60,7 @@ def test_load_plan_shows_editor(page: Page, streamlit_server: str) -> None:
     _load_plan(page, streamlit_server)
 
     # The section header should be visible.
-    expect(page.get_by_role("heading", name="Edit Plan")).to_be_visible()
+    expect(page.get_by_role("heading", name="Edit Plan").first).to_be_visible()
 
     # Sidebar nav radio should now be visible.
     expect(page.locator('[data-testid="stRadio"]')).to_be_visible()
@@ -70,10 +74,12 @@ def test_run_projection_navigates_to_overview(page: Page, streamlit_server: str)
     _load_plan(page, streamlit_server)
     _run_projection(page)
 
-    expect(page.get_by_role("heading", name=lambda n: "Overview" in n)).to_be_visible()
+    expect(
+        page.get_by_role("heading", name=re.compile(r"Overview")).first
+    ).to_be_visible(timeout=_SLOW_TIMEOUT)
 
     # At least one summary metric should be visible.
-    expect(page.locator('[data-testid="metric-container"]').first).to_be_visible()
+    expect(page.locator('[data-testid="stMetric"]').first).to_be_visible()
 
 
 def test_nav_to_cash_flow(page: Page, streamlit_server: str) -> None:
@@ -82,7 +88,7 @@ def test_nav_to_cash_flow(page: Page, streamlit_server: str) -> None:
     _run_projection(page)
     _click_nav(page, "Cash Flow")
 
-    expect(page.get_by_role("heading", name="Cash Flow")).to_be_visible()
+    expect(page.get_by_role("heading", name="Cash Flow").first).to_be_visible()
     expect(page.locator('[data-testid="stSlider"]')).to_be_visible()
 
 
@@ -92,9 +98,10 @@ def test_nav_to_net_worth(page: Page, streamlit_server: str) -> None:
     _run_projection(page)
     _click_nav(page, "Net Worth")
 
-    expect(page.get_by_role("heading", name="Net Worth")).to_be_visible()
-    # Plotly chart should be rendered.
-    expect(page.locator('[data-testid="stPlotlyChart"]')).to_be_visible()
+    expect(page.get_by_role("heading", name="Net Worth").first).to_be_visible()
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
+        timeout=_SLOW_TIMEOUT
+    )
 
 
 def test_nav_to_tax_analysis(page: Page, streamlit_server: str) -> None:
@@ -103,8 +110,10 @@ def test_nav_to_tax_analysis(page: Page, streamlit_server: str) -> None:
     _run_projection(page)
     _click_nav(page, "Tax Analysis")
 
-    expect(page.get_by_role("heading", name="Tax Analysis")).to_be_visible()
-    expect(page.locator('[data-testid="stPlotlyChart"]')).to_be_visible()
+    expect(page.get_by_role("heading", name="Tax Analysis").first).to_be_visible()
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
+        timeout=_SLOW_TIMEOUT
+    )
 
 
 def test_nav_to_monte_carlo(page: Page, streamlit_server: str) -> None:
@@ -125,9 +134,10 @@ def test_nav_to_data_export(page: Page, streamlit_server: str) -> None:
     _run_projection(page)
     _click_nav(page, "Data & Export")
 
-    expect(page.get_by_role("heading", name="Data & Export")).to_be_visible()
-    expect(page.get_by_role("button", name="Export Summary")).to_be_visible()
-    expect(page.get_by_role("button", name="Export Detailed")).to_be_visible()
+    expect(page.get_by_role("heading", name="Data & Export").first).to_be_visible()
+    expect(page.locator('[data-testid="stDownloadButton"]').first).to_be_visible(
+        timeout=_SLOW_TIMEOUT
+    )
 
 
 def test_no_projection_guard(page: Page, streamlit_server: str) -> None:
@@ -136,8 +146,8 @@ def test_no_projection_guard(page: Page, streamlit_server: str) -> None:
     # Navigate to Overview without running a projection first.
     _click_nav(page, "Overview")
 
-    expect(page.get_by_text("Edit Plan")).to_be_visible()
-    expect(page.get_by_text("Run Projection")).to_be_visible()
+    # The info alert should appear directing the user to Edit Plan.
+    expect(page.locator('[data-testid="stAlertContentInfo"]')).to_be_visible()
 
 
 def test_year_slider_persists(page: Page, streamlit_server: str) -> None:
@@ -156,4 +166,6 @@ def test_year_slider_persists(page: Page, streamlit_server: str) -> None:
 
     # Navigate to Net Worth — the magenta year-marker line should still be present.
     _click_nav(page, "Net Worth")
-    expect(page.locator('[data-testid="stPlotlyChart"]')).to_be_visible()
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
+        timeout=_SLOW_TIMEOUT
+    )

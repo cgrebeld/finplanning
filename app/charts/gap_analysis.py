@@ -72,4 +72,4 @@ def render_gap_chart(desired: float, sustainable: float) -> None:
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
 
-    st.plotly_chart(fig, width="container")
+    st.plotly_chart(fig, width="stretch")
