@@ -1,22 +1,26 @@
-"""Sidebar component: file path, scenario, year range, action buttons."""
+"""Sidebar component: file selection, navigation, and projection controls."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 import streamlit as st
-
-try:
-    from streamlit_ace import st_ace
-except ImportError:  # pragma: no cover - dependency is optional outside UI extras.
-    st_ace = None
-
 from finplanning_core.services.planning import PlanningService
 
-from app.state import apply_yaml_edits, load_service, run_projection
+from app.state import load_service
 
 EXAMPLES_DIR = Path("examples")
 DEFAULT_PLAN_PATH = "examples/sample-plan.yaml"
+
+NAV_SECTIONS = [
+    "Edit Plan",
+    "Overview",
+    "Cash Flow",
+    "Net Worth",
+    "Tax Analysis",
+    "Monte Carlo",
+    "Data & Export",
+]
 
 
 def _list_example_plans() -> list[str]:
@@ -28,7 +32,7 @@ def _list_example_plans() -> list[str]:
 
 
 def render_sidebar() -> None:
-    """Render the sidebar with plan loading and projection controls."""
+    """Render the sidebar with plan loading, navigation, and projection controls."""
     with st.sidebar:
         st.header("Plan Configuration")
 
@@ -44,11 +48,23 @@ def render_sidebar() -> None:
         )
         if st.button("Load", type="primary"):
             load_service(plan_path)
+            st.session_state["nav_section"] = "Edit Plan"
 
         service: PlanningService | None = st.session_state.get("service")
         if service is None:
             st.info("Load a plan to get started.")
             return
+
+        st.divider()
+
+        st.radio(
+            "Navigate",
+            options=NAV_SECTIONS,
+            key="nav_section",
+            label_visibility="collapsed",
+        )
+
+        st.divider()
 
         scenario_ids = service.manager.scenario_ids
         selected_scenario = st.session_state.get("scenario_select")
@@ -86,34 +102,3 @@ def render_sidebar() -> None:
                 label_visibility="collapsed",
             )
             st.session_state["end_year"] = int(end_year)
-
-        with st.expander("Plan Data (YAML)", expanded=False):
-            editor_version = st.session_state.get("editor_version", 0)
-            if st_ace is not None:
-                yaml_text = st_ace(
-                    value=st.session_state.get("yaml_editor", ""),
-                    language="yaml",
-                    theme="tomorrow_night_bright",
-                    key=f"yaml_editor_{editor_version}",
-                    height=400,
-                    auto_update=False,
-                    tab_size=2,
-                    wrap=True,
-                    show_gutter=False,
-                    show_print_margin=False,
-                    font_size=14,
-                )
-                yaml_text = yaml_text or ""
-            else:
-                yaml_text = st.text_area(
-                    "Edit plan YAML",
-                    value=st.session_state.get("yaml_editor", ""),
-                    height=400,
-                    key=f"yaml_editor_{editor_version}",
-                    label_visibility="collapsed",
-                )
-            if yaml_text != st.session_state.get("yaml_applied", ""):
-                apply_yaml_edits(yaml_text)
-
-        if st.button("Run Projection", type="primary"):
-            run_projection()

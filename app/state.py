@@ -36,6 +36,7 @@ _DEFAULTS: dict[str, object] = {
     "yaml_applied": "",
     "yaml_editor": "",
     "selected_flow_year": None,
+    "nav_section": "Edit Plan",
 }
 
 
@@ -148,6 +149,8 @@ def run_projection() -> None:
         st.session_state["projection"] = result
         _sync_selected_flow_year(result)
         st.session_state["error"] = None
+        if st.session_state.get("nav_section") == "Edit Plan":
+            st.session_state["_nav_after_run"] = "Overview"
     except Exception as exc:  # noqa: BLE001
         st.session_state["error"] = str(exc)
         st.session_state["projection"] = None
