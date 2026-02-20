@@ -348,6 +348,9 @@ def test_load_service_from_yaml_text_sets_all_state_keys(
     assert fake_st.session_state["scenario_id"] == "base"
     assert fake_st.session_state["start_year"] == today_year
     assert fake_st.session_state["end_year"] == expected_end_year
+    assert fake_st.session_state["plan_path"] == ""
+    assert fake_st.session_state["yaml_edit_error"] is None
+    assert fake_st.session_state["editor_version"] == 1
 
 
 def test_load_service_from_yaml_text_rejects_oversized_content(

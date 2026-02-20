@@ -152,7 +152,10 @@ def load_service_from_yaml_text(yaml_content: str) -> None:
             tmp.write(yaml_content)
             tmp_path = tmp.name
 
-        service = PlanningService.from_yaml(tmp_path)
+        try:
+            service = PlanningService.from_yaml(tmp_path)
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
         st.session_state["service"] = service
         st.session_state["projection"] = None
         st.session_state["mc_result"] = None
@@ -262,7 +265,10 @@ def apply_yaml_edits(yaml_text: str) -> None:
             tmp.write(yaml_text)
             tmp_path = tmp.name
 
-        service = PlanningService.from_yaml(tmp_path)
+        try:
+            service = PlanningService.from_yaml(tmp_path)
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
         st.session_state["service"] = service
         st.session_state["yaml_text"] = yaml_text
         st.session_state["yaml_applied"] = yaml_text
