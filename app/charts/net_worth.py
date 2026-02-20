@@ -1,7 +1,5 @@
 """Net worth trajectory chart — stacked area showing account type balances over time."""
 
-from __future__ import annotations
-
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.engine.projection import ProjectionResult

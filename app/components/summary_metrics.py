@@ -1,7 +1,5 @@
 """Summary KPI metric cards."""
 
-from __future__ import annotations
-
 import streamlit as st
 from finplanning_core.engine.projection import ProjectionResult
 

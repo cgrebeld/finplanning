@@ -1,7 +1,5 @@
 """Edit Plan view — full-width YAML editor."""
 
-from __future__ import annotations
-
 import streamlit as st
 
 try:

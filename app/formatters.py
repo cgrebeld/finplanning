@@ -4,10 +4,9 @@ No Streamlit imports — only pandas. This keeps the module testable
 without a running Streamlit server.
 """
 
-from __future__ import annotations
-
 import pandas as pd
 from finplanning_core.services.export import projection_to_dataframe as projection_to_dataframe
+from pandas.io.formats.style import Styler
 
 MONEY_COLUMNS = [
     "Income",
@@ -36,7 +35,7 @@ def _style_negative_red(val: object) -> str:
     return ""
 
 
-def style_cash_flow(df: pd.DataFrame) -> pd.io.formats.style.Styler:
+def style_cash_flow(df: pd.DataFrame) -> Styler:
     """Apply conditional formatting to the projection DataFrame.
 
     - Red + bold on negative Cash Flow values

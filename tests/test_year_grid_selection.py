@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 from finplanning_core.engine.projection import ProjectionResult
 from finplanning_core.models.plan import HouseholdPlan

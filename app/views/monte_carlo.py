@@ -1,7 +1,5 @@
 """Monte Carlo results view — fan chart with percentile bands and depletion metrics."""
 
-from __future__ import annotations
-
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.models.plan import HouseholdPlan

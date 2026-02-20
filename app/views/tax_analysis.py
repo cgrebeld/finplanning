@@ -1,7 +1,5 @@
 """Tax Analysis section — tax heatmap."""
 
-from __future__ import annotations
-
 import streamlit as st
 from finplanning_core.engine.projection import ProjectionResult
 from finplanning_core.services.planning import PlanningService

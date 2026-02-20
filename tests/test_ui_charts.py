@@ -1,7 +1,5 @@
 """Tests for UI chart builders that do not require Streamlit runtime."""
 
-from __future__ import annotations
-
 import pytest
 from finplanning_core.engine.projection import ProjectionResult, YearlyProjection
 from finplanning_core.models.plan import HouseholdPlan

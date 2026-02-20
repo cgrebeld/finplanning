@@ -1,7 +1,5 @@
 """Monte Carlo section — simulation controls and results."""
 
-from __future__ import annotations
-
 import streamlit as st
 from finplanning_core.risk.monte_carlo import MonteCarloResult
 from finplanning_core.services.planning import PlanningService

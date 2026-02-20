@@ -1,7 +1,5 @@
 """Tests for src/ui/formatters — pure pandas, no Streamlit required."""
 
-from __future__ import annotations
-
 import inspect
 
 import pytest

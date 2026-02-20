@@ -1,7 +1,5 @@
 """Session state helpers for the Streamlit UI."""
 
-from __future__ import annotations
-
 import contextlib
 import tempfile
 from datetime import date

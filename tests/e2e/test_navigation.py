@@ -4,8 +4,6 @@ Run with: .venv/bin/python -m pytest tests/e2e/ -v
 For visual debugging: .venv/bin/python -m pytest tests/e2e/ -v --headed
 """
 
-from __future__ import annotations
-
 import re
 
 import pytest

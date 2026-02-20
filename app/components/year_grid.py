@@ -1,29 +1,25 @@
 """Year-by-year projection grid component."""
 
-from __future__ import annotations
-
-from typing import Any
-
+import pandas as pd
 import streamlit as st
 from finplanning_core.engine.projection import ProjectionResult
 from finplanning_core.models.plan import HouseholdPlan
+from pandas.io.formats.style import Styler
 
 from app.formatters import projection_to_dataframe, style_cash_flow
 
 
-def _style_selected_year_row(styled: Any, selected_year: int | None) -> Any:
+def _style_selected_year_row(styled: Styler, selected_year: int | None) -> Styler:
     if selected_year is None:
         return styled
 
-    def _row_style(row: Any) -> list[str]:
+    def _row_style(row: pd.Series) -> list[str]:
         year_value = row.get("Year") if hasattr(row, "get") else None
         if year_value is not None and int(year_value) == selected_year:
             return ["border: 2px solid #ff4da6"] * len(row)
         return [""] * len(row)
 
-    if hasattr(styled, "apply"):
-        return styled.apply(_row_style, axis=1)
-    return styled
+    return styled.apply(_row_style, axis=1)
 
 
 def render_year_grid(projection: ProjectionResult, plan: HouseholdPlan, selected_year: int | None = None) -> None:

@@ -1,7 +1,5 @@
 """Tax heat map — colour-coded grid showing marginal tax rate by age."""
 
-from __future__ import annotations
-
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.engine.projection import ProjectionResult

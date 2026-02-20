@@ -1,7 +1,5 @@
 """Cash flow Sankey chart for tracing yearly inflows to outflows."""
 
-from __future__ import annotations
-
 from collections import defaultdict
 
 import plotly.graph_objects as go

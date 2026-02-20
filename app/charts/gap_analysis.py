@@ -1,7 +1,5 @@
 """Gap analysis chart — horizontal bar comparing desired vs sustainable spending."""
 
-from __future__ import annotations
-
 import plotly.graph_objects as go
 import streamlit as st
 

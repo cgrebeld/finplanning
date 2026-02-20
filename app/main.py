@@ -6,8 +6,6 @@ The __name__ guard prevents this module's UI code from executing when
 ProcessPoolExecutor "spawn" workers re-import __main__ on macOS.
 """
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 

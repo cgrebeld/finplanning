@@ -1,7 +1,5 @@
 """Sidebar component: file upload, sample selection, navigation, and projection controls."""
 
-from __future__ import annotations
-
 import tempfile
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path

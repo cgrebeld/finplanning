@@ -1,7 +1,5 @@
 """Data & Export section — year grid and Excel export buttons."""
 
-from __future__ import annotations
-
 import tempfile
 from pathlib import Path
 
@@ -48,14 +46,18 @@ def _build_summary_xlsx(projection: ProjectionResult, service: PlanningService) 
     rows = rows_for_summary_output(projection, service.plan)
     labels = {f: f for f in rows[0]}
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
         write_xlsx(
             rows,
-            tmp.name,
+            tmp_path,
             header_labels=labels,
             chart_x_field="Year",
             chart_series=[("Net Worth", "Net Worth")],
         )
-        return Path(tmp.name).read_bytes()
+        return Path(tmp_path).read_bytes()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
 
 
 def _build_detailed_xlsx(projection: ProjectionResult, service: PlanningService) -> bytes:
@@ -63,5 +65,9 @@ def _build_detailed_xlsx(projection: ProjectionResult, service: PlanningService)
     rows = rows_for_tabular_output(projection, account_ids)
     labels, series = header_labels_for_plan(list(rows[0].keys()), service.plan)
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
-        write_xlsx(rows, tmp.name, header_labels=labels, chart_series=series)
-        return Path(tmp.name).read_bytes()
+        tmp_path = tmp.name
+    try:
+        write_xlsx(rows, tmp_path, header_labels=labels, chart_series=series)
+        return Path(tmp_path).read_bytes()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
