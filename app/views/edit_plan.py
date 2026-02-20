@@ -44,6 +44,10 @@ def render_edit_plan_view() -> None:
     if yaml_text != st.session_state.get("yaml_applied", ""):
         apply_yaml_edits(yaml_text)
 
+    yaml_edit_error: str | None = st.session_state.get("yaml_edit_error")
+    if yaml_edit_error:
+        st.error(yaml_edit_error)
+
     if st.button("Run Projection", type="primary"):
         run_projection()
         st.rerun()
