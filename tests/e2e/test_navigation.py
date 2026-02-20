@@ -18,10 +18,13 @@ _SLOW_TIMEOUT = 10_000
 
 
 def _load_plan(page: Page, base_url: str) -> None:
-    """Navigate to the app and click Load with the default plan file."""
+    """Navigate to the app and load the default sample plan via the Load Sample dialog."""
     page.goto(base_url)
     page.wait_for_load_state("networkidle")
-    page.get_by_role("button", name="Load").click()
+    page.get_by_role("button", name="Load Sample", exact=True).click()
+    # Wait for the dialog's Load Selected button to appear, then confirm.
+    page.get_by_role("button", name="Load Selected").wait_for()
+    page.get_by_role("button", name="Load Selected").click()
     page.wait_for_timeout(_WAIT_MS)
 
 
