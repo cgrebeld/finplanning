@@ -190,8 +190,9 @@ def test_apply_yaml_edits_rejects_content_over_100kb(monkeypatch: pytest.MonkeyP
     state.apply_yaml_edits(oversized_yaml)
 
     assert called["value"] is False
-    assert "exceeds" in (fake_st.session_state["error"] or "")
-    assert str(state.MAX_YAML_SIZE_BYTES) in (fake_st.session_state["error"] or "")
+    assert "exceeds" in (fake_st.session_state["yaml_edit_error"] or "")
+    assert str(state.MAX_YAML_SIZE_BYTES) in (fake_st.session_state["yaml_edit_error"] or "")
+    assert fake_st.session_state.get("error") is None
 
 
 def test_run_monte_carlo_rejects_iterations_over_limit(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -285,3 +286,36 @@ def test_run_projection_preserves_valid_selected_flow_year(monkeypatch: pytest.M
     state.run_projection()
 
     assert fake_st.session_state["selected_flow_year"] == 2026
+
+
+def test_apply_yaml_edits_sets_yaml_edit_error_on_parse_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_st = SimpleNamespace(session_state={})
+    monkeypatch.setattr(state, "st", fake_st)
+    state.init_state()
+
+    def _raise(_path: str) -> None:
+        raise ValueError("bad schema")
+
+    monkeypatch.setattr(PlanningService, "from_yaml", staticmethod(_raise))
+
+    state.apply_yaml_edits("invalid: yaml: content")
+
+    assert "bad schema" in (fake_st.session_state["yaml_edit_error"] or "")
+    assert fake_st.session_state.get("error") is None
+    # yaml_applied must NOT be updated when parse fails
+    assert fake_st.session_state["yaml_applied"] == ""
+
+
+def test_apply_yaml_edits_clears_yaml_edit_error_on_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_st = SimpleNamespace(session_state={})
+    monkeypatch.setattr(state, "st", fake_st)
+    state.init_state()
+    fake_st.session_state["yaml_edit_error"] = "previous error"
+
+    fake_service = _make_fake_service()
+    monkeypatch.setattr(PlanningService, "from_yaml", staticmethod(lambda _path: fake_service))
+    monkeypatch.setattr(state, "run_projection", lambda: None)
+
+    state.apply_yaml_edits("household:\n  name: OK\n")
+
+    assert fake_st.session_state["yaml_edit_error"] is None

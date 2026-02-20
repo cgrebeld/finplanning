@@ -35,6 +35,7 @@ _DEFAULTS: dict[str, object] = {
     "yaml_text": "",
     "yaml_applied": "",
     "yaml_editor": "",
+    "yaml_edit_error": None,
     "selected_flow_year": None,
     "nav_section": "Edit Plan",
 }
@@ -211,7 +212,7 @@ def apply_yaml_edits(yaml_text: str) -> None:
         had_active_projection = st.session_state.get("projection") is not None
         yaml_size = len(yaml_text.encode("utf-8"))
         if yaml_size > MAX_YAML_SIZE_BYTES:
-            st.session_state["error"] = (
+            st.session_state["yaml_edit_error"] = (
                 f"YAML override error: content exceeds {MAX_YAML_SIZE_BYTES} bytes ({yaml_size} bytes provided)."
             )
             return
@@ -228,10 +229,11 @@ def apply_yaml_edits(yaml_text: str) -> None:
         st.session_state["mc_result"] = None
         st.session_state["mc_running"] = False
         st.session_state["error"] = None
+        st.session_state["yaml_edit_error"] = None
 
         _set_scenario_and_year_controls(service)
 
         if had_active_projection:
             run_projection()
     except Exception as exc:  # noqa: BLE001
-        st.session_state["error"] = f"YAML override error: {exc}"
+        st.session_state["yaml_edit_error"] = f"YAML override error: {exc}"
