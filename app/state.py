@@ -14,7 +14,7 @@ from streamlit.errors import StreamlitAPIException
 
 MAX_MC_ITERATIONS = 2000
 MAX_YAML_SIZE_BYTES = 100 * 1024
-MonteCarloReturnMethod = Literal["historical", "parametric"]
+type MonteCarloReturnMethod = Literal["historical", "parametric"]
 MC_RETURN_METHODS: tuple[MonteCarloReturnMethod, ...] = ("historical", "parametric")
 
 _DEFAULTS: dict[str, object] = {

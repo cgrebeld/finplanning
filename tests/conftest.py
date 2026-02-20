@@ -14,7 +14,7 @@ _STREAMLIT = str(_VENV_BIN / "streamlit")
 
 
 @pytest.fixture(scope="session")
-def streamlit_server():
+def streamlit_server() -> str:
     """Launch the Streamlit app on port 8502 and yield the base URL."""
     proc = subprocess.Popen(
         [

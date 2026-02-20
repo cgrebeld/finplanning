@@ -110,10 +110,11 @@ def test_apply_yaml_edits_resets_controls_and_reprojects_when_projection_is_acti
         staticmethod(lambda _path: fake_service),
     )
 
-    reprojection_called = {"value": False}
+    reprojection_called = False
 
     def _fake_run_projection() -> None:
-        reprojection_called["value"] = True
+        nonlocal reprojection_called
+        reprojection_called = True
 
     monkeypatch.setattr(state, "run_projection", _fake_run_projection)
 
@@ -136,7 +137,7 @@ def test_apply_yaml_edits_resets_controls_and_reprojects_when_projection_is_acti
     assert fake_st.session_state["mc_result"] is None
     assert fake_st.session_state["mc_running"] is False
     assert fake_st.session_state["error"] is None
-    assert reprojection_called["value"] is True
+    assert reprojection_called is True
 
 
 def test_apply_yaml_edits_does_not_reproject_without_active_projection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -151,10 +152,11 @@ def test_apply_yaml_edits_does_not_reproject_without_active_projection(monkeypat
         staticmethod(lambda _path: fake_service),
     )
 
-    reprojection_called = {"value": False}
+    reprojection_called = False
 
     def _fake_run_projection() -> None:
-        reprojection_called["value"] = True
+        nonlocal reprojection_called
+        reprojection_called = True
 
     monkeypatch.setattr(state, "run_projection", _fake_run_projection)
 
@@ -165,7 +167,7 @@ def test_apply_yaml_edits_does_not_reproject_without_active_projection(monkeypat
     assert fake_st.session_state["projection"] is None
     assert fake_st.session_state["yaml_applied"] == edited_yaml
     assert fake_st.session_state["error"] is None
-    assert reprojection_called["value"] is False
+    assert reprojection_called is False
 
 
 def test_apply_yaml_edits_rejects_content_over_100kb(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -173,10 +175,11 @@ def test_apply_yaml_edits_rejects_content_over_100kb(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(state, "st", fake_st)
     state.init_state()
 
-    called = {"value": False}
+    from_yaml_called = False
 
     def _raise_if_called(_path: str) -> SimpleNamespace:
-        called["value"] = True
+        nonlocal from_yaml_called
+        from_yaml_called = True
         raise AssertionError("from_yaml should not be called for oversized YAML")
 
     monkeypatch.setattr(
@@ -188,7 +191,7 @@ def test_apply_yaml_edits_rejects_content_over_100kb(monkeypatch: pytest.MonkeyP
     oversized_yaml = "x" * (state.MAX_YAML_SIZE_BYTES + 1)
     state.apply_yaml_edits(oversized_yaml)
 
-    assert called["value"] is False
+    assert from_yaml_called is False
     assert "exceeds" in (fake_st.session_state["yaml_edit_error"] or "")
     assert str(state.MAX_YAML_SIZE_BYTES) in (fake_st.session_state["yaml_edit_error"] or "")
     assert fake_st.session_state.get("error") is None
@@ -199,10 +202,11 @@ def test_run_monte_carlo_rejects_iterations_over_limit(monkeypatch: pytest.Monke
     monkeypatch.setattr(state, "st", fake_st)
     state.init_state()
 
-    called = {"value": False}
+    mc_called = False
 
     def _fake_run_monte_carlo(**_kwargs: object) -> object:
-        called["value"] = True
+        nonlocal mc_called
+        mc_called = True
         return object()
 
     fake_service = SimpleNamespace(plan=_make_fake_service().plan, run_monte_carlo=_fake_run_monte_carlo)
@@ -210,7 +214,7 @@ def test_run_monte_carlo_rejects_iterations_over_limit(monkeypatch: pytest.Monke
 
     state.run_monte_carlo(n_iterations=state.MAX_MC_ITERATIONS + 1)
 
-    assert called["value"] is False
+    assert mc_called is False
     assert "cannot exceed" in (fake_st.session_state["error"] or "")
 
 
@@ -219,10 +223,11 @@ def test_run_monte_carlo_rejects_when_already_running(monkeypatch: pytest.Monkey
     monkeypatch.setattr(state, "st", fake_st)
     state.init_state()
 
-    called = {"value": False}
+    mc_called = False
 
     def _fake_run_monte_carlo(**_kwargs: object) -> object:
-        called["value"] = True
+        nonlocal mc_called
+        mc_called = True
         return object()
 
     fake_service = SimpleNamespace(plan=_make_fake_service().plan, run_monte_carlo=_fake_run_monte_carlo)
@@ -231,7 +236,7 @@ def test_run_monte_carlo_rejects_when_already_running(monkeypatch: pytest.Monkey
 
     state.run_monte_carlo(n_iterations=1000)
 
-    assert called["value"] is False
+    assert mc_called is False
     assert "already running" in (fake_st.session_state["error"] or "")
 
 

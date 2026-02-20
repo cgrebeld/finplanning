@@ -1,5 +1,6 @@
 """Monte Carlo results view — fan chart with percentile bands and depletion metrics."""
 
+import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.models.plan import HouseholdPlan
@@ -59,8 +60,6 @@ def _render_fan_chart(result: MonteCarloResult, plan: HouseholdPlan) -> None:
         ages = [result.sample_paths[0].years[t].person1_age for t in range(n_years)]
 
         # Fallback for legacy result objects with only sample paths.
-        import numpy as np
-
         nw_matrix: list[list[float]] = []
         for path in result.sample_paths:
             nw_matrix.append([path.years[t].total_net_worth for t in range(n_years)])

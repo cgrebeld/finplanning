@@ -159,18 +159,19 @@ if __name__ == "__main__":
         st.stop()
 
     # Dispatch to projection-required sections.
-    if nav_section == "Monte Carlo":
-        render_monte_carlo_section()
-    else:
-        _RENDERERS = {
-            "Overview": render_overview,
-            "Cash Flow": render_cash_flow,
-            "Net Worth": render_net_worth,
-            "Tax Analysis": render_tax_analysis,
-            "Data & Export": render_data_export,
-        }
-        renderer = _RENDERERS.get(nav_section)
-        if renderer is None:
+    match nav_section:
+        case "Monte Carlo":
+            render_monte_carlo_section()
+        case "Overview":
+            render_overview(projection, service)
+        case "Cash Flow":
+            render_cash_flow(projection, service)
+        case "Net Worth":
+            render_net_worth(projection, service)
+        case "Tax Analysis":
+            render_tax_analysis(projection, service)
+        case "Data & Export":
+            render_data_export(projection, service)
+        case _:
             st.error(f"Unknown section: {nav_section!r}")
             st.stop()
-        renderer(projection, service)
