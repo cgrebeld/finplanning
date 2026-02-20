@@ -124,7 +124,7 @@ income:
     owner: jane # Owner person ID.
     name: "Public Service DB Pension" # Display label.
     type: PENSION # Income type enum.
-    annual_amount: 48000 # Gross annual amount in today's dollars.
+    annual_amount: 48000 # Gross annual amount in nominal dollars (actual cash in first payment year).
     start_date: 2047 # First active year.
     is_eligible_for_splitting: true # Whether pension income splitting can apply.
 
