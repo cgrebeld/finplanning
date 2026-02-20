@@ -319,3 +319,64 @@ def test_apply_yaml_edits_clears_yaml_edit_error_on_success(monkeypatch: pytest.
     state.apply_yaml_edits("household:\n  name: OK\n")
 
     assert fake_st.session_state["yaml_edit_error"] is None
+
+
+def test_load_service_from_yaml_text_sets_all_state_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_st = SimpleNamespace(session_state={})
+    monkeypatch.setattr(state, "st", fake_st)
+    state.init_state()
+
+    fake_service = _make_fake_service()
+    monkeypatch.setattr(PlanningService, "from_yaml", staticmethod(lambda _path: fake_service))
+
+    yaml_content = "household:\n  name: Test\n"
+    state.load_service_from_yaml_text(yaml_content)
+
+    expected_end_year = 1974 + 95
+    today_year = date.today().year
+
+    assert fake_st.session_state["service"] is fake_service
+    assert fake_st.session_state["projection"] is None
+    assert fake_st.session_state["mc_result"] is None
+    assert fake_st.session_state["mc_running"] is False
+    assert fake_st.session_state["error"] is None
+    assert fake_st.session_state["yaml_text"] == yaml_content
+    assert fake_st.session_state["yaml_applied"] == yaml_content
+    assert fake_st.session_state["yaml_editor"] == yaml_content
+    assert fake_st.session_state["scenario_id"] == "base"
+    assert fake_st.session_state["start_year"] == today_year
+    assert fake_st.session_state["end_year"] == expected_end_year
+
+
+def test_load_service_from_yaml_text_rejects_oversized_content(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_st = SimpleNamespace(session_state={})
+    monkeypatch.setattr(state, "st", fake_st)
+    state.init_state()
+
+    oversized = "x" * (state.MAX_YAML_SIZE_BYTES + 1)
+    state.load_service_from_yaml_text(oversized)
+
+    assert fake_st.session_state["service"] is None
+    assert "exceeds" in (fake_st.session_state["error"] or "")
+
+
+def test_load_service_from_yaml_text_sets_error_on_parse_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_st = SimpleNamespace(session_state={})
+    monkeypatch.setattr(state, "st", fake_st)
+    state.init_state()
+
+    def _raise(_path: str) -> None:
+        raise ValueError("invalid plan")
+
+    monkeypatch.setattr(PlanningService, "from_yaml", staticmethod(_raise))
+
+    state.load_service_from_yaml_text("bad: yaml")
+
+    assert fake_st.session_state["service"] is None
+    assert "invalid plan" in (fake_st.session_state["error"] or "")

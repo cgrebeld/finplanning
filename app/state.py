@@ -134,6 +134,47 @@ def load_service(plan_path: str) -> None:
         st.session_state["mc_running"] = False
 
 
+def load_service_from_yaml_text(yaml_content: str) -> None:
+    """Load a PlanningService from raw YAML content string into session state."""
+    try:
+        yaml_size = len(yaml_content.encode("utf-8"))
+        if yaml_size > MAX_YAML_SIZE_BYTES:
+            st.session_state["error"] = (
+                f"YAML content exceeds {MAX_YAML_SIZE_BYTES} bytes ({yaml_size} bytes provided)."
+            )
+            st.session_state["service"] = None
+            st.session_state["projection"] = None
+            st.session_state["mc_result"] = None
+            st.session_state["mc_running"] = False
+            return
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False, encoding="utf-8") as tmp:
+            tmp.write(yaml_content)
+            tmp_path = tmp.name
+
+        service = PlanningService.from_yaml(tmp_path)
+        st.session_state["service"] = service
+        st.session_state["projection"] = None
+        st.session_state["mc_result"] = None
+        st.session_state["mc_running"] = False
+        st.session_state["error"] = None
+        st.session_state["yaml_edit_error"] = None
+
+        _set_scenario_and_year_controls(service)
+
+        st.session_state["plan_path"] = ""
+        st.session_state["yaml_text"] = yaml_content
+        st.session_state["yaml_applied"] = yaml_content
+        st.session_state["yaml_editor"] = yaml_content
+        st.session_state["editor_version"] = st.session_state.get("editor_version", 0) + 1
+    except Exception as exc:  # noqa: BLE001
+        st.session_state["error"] = str(exc)
+        st.session_state["service"] = None
+        st.session_state["projection"] = None
+        st.session_state["mc_result"] = None
+        st.session_state["mc_running"] = False
+
+
 def run_projection() -> None:
     """Run the projection for the current scenario and year range."""
     service: PlanningService | None = st.session_state.get("service")
