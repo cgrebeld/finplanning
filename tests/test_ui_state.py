@@ -85,6 +85,7 @@ def test_load_service_resets_all_projection_controls(monkeypatch: pytest.MonkeyP
     assert fake_st.session_state["yaml_applied"] == plan_contents
     assert fake_st.session_state["yaml_editor"] == plan_contents
     assert fake_st.session_state["error"] is None
+    assert fake_st.session_state["yaml_edit_error"] is None
 
 
 def test_apply_yaml_edits_resets_controls_and_reprojects_when_projection_is_active(

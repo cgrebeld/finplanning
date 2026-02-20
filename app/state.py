@@ -116,6 +116,7 @@ def load_service(plan_path: str) -> None:
         st.session_state["mc_result"] = None
         st.session_state["mc_running"] = False
         st.session_state["error"] = None
+        st.session_state["yaml_edit_error"] = None
 
         _set_scenario_and_year_controls(service)
 
@@ -146,6 +147,7 @@ def load_service_from_yaml_text(yaml_content: str) -> None:
             st.session_state["projection"] = None
             st.session_state["mc_result"] = None
             st.session_state["mc_running"] = False
+            st.session_state["yaml_edit_error"] = None
             return
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False, encoding="utf-8") as tmp:
