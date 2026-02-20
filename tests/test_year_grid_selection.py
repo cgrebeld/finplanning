@@ -1,7 +1,7 @@
 import pytest
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.models.plan import HouseholdPlan
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.models import HouseholdPlan
+from finplanning_core.services import PlanningService
 
 from app.components.year_grid import (
     _style_selected_year_row,

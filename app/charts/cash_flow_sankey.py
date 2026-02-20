@@ -4,11 +4,11 @@ from collections import defaultdict
 
 import plotly.graph_objects as go
 import streamlit as st
-from finplanning_core.engine.inflation import inflate
-from finplanning_core.engine.projection import ProjectionResult, YearlyProjection
-from finplanning_core.models.accounts import AccountType
-from finplanning_core.models.plan import HouseholdPlan
-from finplanning_core.tax.calculator import TaxCalculator
+from finplanning_core.engine import inflate
+from finplanning_core.engine import ProjectionResult, YearlyProjection
+from finplanning_core.models import AccountType
+from finplanning_core.models import HouseholdPlan
+from finplanning_core.tax import TaxCalculator
 
 SOURCE_ORDER = [
     "Employment Income",

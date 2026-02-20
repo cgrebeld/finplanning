@@ -1,7 +1,7 @@
 """Summary KPI metric cards."""
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
+from finplanning_core.engine import ProjectionResult
 
 
 def render_summary_metrics(projection: ProjectionResult) -> None:

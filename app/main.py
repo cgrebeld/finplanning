@@ -16,8 +16,8 @@ if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import PlanningService
 
 from app.components.sidebar import render_sidebar
 from app.state import init_state

@@ -1,8 +1,8 @@
 """Monte Carlo section — simulation controls and results."""
 
 import streamlit as st
-from finplanning_core.risk.monte_carlo import MonteCarloResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.risk import MonteCarloResult
+from finplanning_core.services import PlanningService
 
 from app.state import MC_RETURN_METHODS, MonteCarloReturnMethod, run_monte_carlo
 from app.views.monte_carlo import render_monte_carlo_view

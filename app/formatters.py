@@ -5,7 +5,7 @@ without a running Streamlit server.
 """
 
 import pandas as pd
-from finplanning_core.services.export import projection_to_dataframe as projection_to_dataframe
+from finplanning_core.services import projection_to_dataframe as projection_to_dataframe
 from pandas.io.formats.style import Styler
 
 MONEY_COLUMNS = [

@@ -6,8 +6,8 @@ import pytest
 
 pd = pytest.importorskip("pandas")
 
-from finplanning_core.engine.projection import ProjectionResult  # noqa: E402
-from finplanning_core.services.planning import PlanningService  # noqa: E402
+from finplanning_core.engine import ProjectionResult  # noqa: E402
+from finplanning_core.services import PlanningService  # noqa: E402
 
 from app.formatters import projection_to_dataframe, style_cash_flow  # noqa: E402
 

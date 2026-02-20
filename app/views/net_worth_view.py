@@ -1,8 +1,8 @@
 """Net Worth section — net worth chart."""
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import PlanningService
 
 from app.charts.net_worth import render_net_worth_chart
 from app.state import get_selected_flow_year

@@ -3,8 +3,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from finplanning_core.engine.projection import ProjectionResult, YearlyProjection
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult, YearlyProjection
+from finplanning_core.services import PlanningService
 
 from app import state
 

@@ -2,8 +2,8 @@
 
 import plotly.graph_objects as go
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.models.plan import HouseholdPlan
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.models import HouseholdPlan
 
 
 def build_tax_heatmap_figure(

@@ -3,8 +3,8 @@
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
-from finplanning_core.models.plan import HouseholdPlan
-from finplanning_core.risk.monte_carlo import MonteCarloResult
+from finplanning_core.models import HouseholdPlan
+from finplanning_core.risk import MonteCarloResult
 
 
 def render_monte_carlo_view(result: MonteCarloResult, plan: HouseholdPlan) -> None:

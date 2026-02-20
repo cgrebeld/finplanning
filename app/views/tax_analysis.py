@@ -1,8 +1,8 @@
 """Tax Analysis section — tax heatmap."""
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import PlanningService
 
 from app.charts.tax_heatmap import render_tax_heatmap
 from app.state import get_selected_flow_year

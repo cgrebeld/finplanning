@@ -1,9 +1,9 @@
 """Tests for UI chart builders that do not require Streamlit runtime."""
 
 import pytest
-from finplanning_core.engine.projection import ProjectionResult, YearlyProjection
-from finplanning_core.models.plan import HouseholdPlan
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult, YearlyProjection
+from finplanning_core.models import HouseholdPlan
+from finplanning_core.services import PlanningService
 
 from app.charts.cash_flow_sankey import (
     DESTINATION_ORDER,

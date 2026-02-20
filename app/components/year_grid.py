@@ -2,8 +2,8 @@
 
 import pandas as pd
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.models.plan import HouseholdPlan
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.models import HouseholdPlan
 from pandas.io.formats.style import Styler
 
 from app.formatters import projection_to_dataframe, style_cash_flow

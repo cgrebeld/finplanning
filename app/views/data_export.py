@@ -4,14 +4,14 @@ import tempfile
 from pathlib import Path
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.export import (
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import (
     header_labels_for_plan,
     rows_for_summary_output,
     rows_for_tabular_output,
     write_xlsx,
 )
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.services import PlanningService
 
 from app.components.year_grid import render_year_grid
 from app.state import get_selected_flow_year

@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Literal
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.risk.monte_carlo import MonteCarloConfig
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.risk import MonteCarloConfig
+from finplanning_core.services import PlanningService
 from streamlit.errors import StreamlitAPIException
 
 MAX_MC_ITERATIONS = 2000

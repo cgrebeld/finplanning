@@ -1,8 +1,8 @@
 """Cash Flow section — year slider and Sankey diagram."""
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import PlanningService
 
 from app.charts.cash_flow_sankey import render_cash_flow_sankey
 from app.state import get_selected_flow_year, set_selected_flow_year

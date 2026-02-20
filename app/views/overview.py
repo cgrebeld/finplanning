@@ -1,8 +1,8 @@
 """Overview section — summary metrics and gap chart."""
 
 import streamlit as st
-from finplanning_core.engine.projection import ProjectionResult
-from finplanning_core.services.planning import PlanningService
+from finplanning_core.engine import ProjectionResult
+from finplanning_core.services import PlanningService
 
 from app.charts.gap_analysis import render_gap_chart
 from app.components.summary_metrics import render_summary_metrics
