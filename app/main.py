@@ -64,6 +64,15 @@ def _apply_global_styles() -> None:
             background-color: #c82333 !important;
             border-color: #bd2130 !important;
         }
+        .app-version {
+            position: fixed;
+            bottom: 0.75rem;
+            left: 1rem;
+            font-size: 0.7rem;
+            color: rgba(150, 150, 150, 0.55);
+            font-family: monospace;
+            pointer-events: none;
+        }
         </style>
         """,
         unsafe_allow_html=True,

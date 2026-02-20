@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 import tempfile
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import streamlit as st
 from finplanning_core.services.planning import PlanningService
 
 from app.state import MAX_YAML_SIZE_BYTES, load_service, load_service_from_yaml_text, run_projection
+
+try:
+    _APP_VERSION = version("finplanning-ui")
+except PackageNotFoundError:  # pragma: no cover
+    _APP_VERSION = "dev"
 
 EXAMPLES_DIR = Path("examples")
 DEFAULT_PLAN_PATH = "examples/sample-plan.yaml"
@@ -171,3 +177,8 @@ def render_sidebar() -> None:
         if st.button("Run Projection", type="primary", use_container_width=True):
             run_projection()
             st.rerun()
+
+        st.markdown(
+            f'<div class="app-version">v{_APP_VERSION}</div>',
+            unsafe_allow_html=True,
+        )
