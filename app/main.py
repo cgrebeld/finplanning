@@ -109,7 +109,7 @@ def _render_landing_page() -> None:
         "Supports CPP/OAS benefits, RRIF conversions, glide-path asset allocation, "
         "and full federal + provincial (BC) tax modelling with bracket indexation."
     )
-    st.info("← Select a plan file in the sidebar and click **Load** to begin.", icon="👈")
+    st.info("← Click **Load** to upload a plan file, or **Load Sample** to try a bundled example.", icon="👈")
 
 
 if __name__ == "__main__":
