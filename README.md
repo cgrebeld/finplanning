@@ -18,6 +18,8 @@ uv pip install -r requirements.txt
 
 This installs Streamlit, Plotly, Pandas, and the bundled `finplanning_core` engine from `wheels/`.
 
+> **Note:** `requirements.txt` and `wheels/` are updated automatically by CI when a new engine release is published. Do not edit `requirements.txt` manually.
+
 ## Run
 
 ```bash
