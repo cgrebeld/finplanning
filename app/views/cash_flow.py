@@ -17,6 +17,11 @@ def render_cash_flow(projection: ProjectionResult, service: PlanningService) -> 
     slider_key = "selected_flow_year_slider"
     st.session_state[slider_key] = selected_flow_year
 
+    person1_name = service.plan.household.person1.name.split()[0]
+    birth_year = service.plan.household.person1.birth_date.year
+    person1_age = selected_flow_year - birth_year
+    slider_label = f"{person1_name} is {person1_age}: {selected_flow_year}"
+
     def _on_selected_year_slider_change() -> None:
         slider_year_value = st.session_state.get(slider_key)
         if isinstance(slider_year_value, int):
@@ -25,7 +30,7 @@ def render_cash_flow(projection: ProjectionResult, service: PlanningService) -> 
     sankey_col1, _ = st.columns([2, 1])
     with sankey_col1:
         slider_year = st.slider(
-            "Select Year",
+            slider_label,
             min_value=min(years),
             max_value=max(years),
             step=1,

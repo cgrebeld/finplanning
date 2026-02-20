@@ -17,7 +17,7 @@ def build_net_worth_figure(
     rrsp_rrif = [float(yr.total_rrsp_rrif) for yr in projection.years]
     tfsa = [float(yr.total_tfsa) for yr in projection.years]
 
-    hover = f"{person1_name} age %{{x}} (%{{customdata}})<br>"
+    hover = f"{person1_name} is %{{x}}: %{{customdata}}<br>"
 
     fig = go.Figure()
 

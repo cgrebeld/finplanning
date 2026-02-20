@@ -143,6 +143,8 @@ def build_cash_flow_sankey_figure(
 ) -> go.Figure:
     """Build Sankey figure for a selected projection year."""
     yearly = _find_yearly_projection(projection, selected_year)
+    person1_name = plan.household.person1.name.split()[0]
+    year_context = f"{person1_name} is {yearly.person1_age}: {selected_year}"
 
     source_amounts: dict[str, float] = {
         "Employment Income": yearly.employment_income,
@@ -247,7 +249,7 @@ def build_cash_flow_sankey_figure(
                     "thickness": 14,
                     "color": node_colors,
                     "x": node_x,
-                    "hovertemplate": "%{label}<br>Total: $%{value:,.0f}<extra></extra>",
+                    "hovertemplate": f"{year_context}<br>%{{label}}<br>Total: $%{{value:,.0f}}<extra></extra>",
                     "hoverlabel": {
                         "bgcolor": "rgba(50,50,50,0.95)",
                         "bordercolor": "rgba(50,50,50,0.95)",
@@ -261,6 +263,7 @@ def build_cash_flow_sankey_figure(
                     "value": link_values,
                     "color": [c.replace(")", ", 0.25)").replace("rgb", "rgba") if "rgb" in c else c for c in link_colors],
                     "hovertemplate": (
+                        f"{year_context}<br>"
                         "%{source.label} → %{target.label}"
                         "<br><b>$%{value:,.0f}</b>"
                         "<extra></extra>"

@@ -11,3 +11,5 @@ build/
 .uv-cache/
 uv.lock
 .worktrees/
+.claude/
+.playwright-cli/

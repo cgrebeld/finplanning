@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     projection: ProjectionResult | None = st.session_state.get("projection")
     if projection is None:
-        st.info("Go to **Edit Plan** and click **Run Projection** to generate results.")
+        st.info("Click **Run Projection** in the side bar to generate results.")
         st.stop()
 
     # Dispatch to projection-required sections.

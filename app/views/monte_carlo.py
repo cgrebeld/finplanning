@@ -70,7 +70,7 @@ def _render_fan_chart(result: MonteCarloResult, plan: HouseholdPlan) -> None:
         p75 = np.percentile(nw_arr, 75, axis=0).tolist()
         p90 = np.percentile(nw_arr, 90, axis=0).tolist()
         years = [[result.sample_paths[0].years[t].year] for t in range(n_years)]
-    hover = f"{person1_name} age %{{x}} (%{{customdata[0]}})<br>"
+    hover = f"{person1_name} is %{{x}}: %{{customdata[0]}}<br>"
 
     fig = go.Figure()
 

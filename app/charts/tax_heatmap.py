@@ -16,6 +16,7 @@ def build_tax_heatmap_figure(
     """
     person1_name = plan.household.person1.name.split()[0]
     ages = [yr.person1_age for yr in projection.years]
+    years = [yr.year for yr in projection.years]
     mtr = [float(yr.marginal_tax_rate * 100) for yr in projection.years]
     avg = [float(yr.average_tax_rate * 100) for yr in projection.years]
 
@@ -26,6 +27,7 @@ def build_tax_heatmap_figure(
             x=ages,
             y=["Avg Tax Rate", "Marginal Tax Rate"],
             z=[avg, mtr],
+            customdata=[years, years],
             colorscale=[
                 [0.0, "lightyellow"],
                 [0.3, "gold"],
@@ -33,7 +35,7 @@ def build_tax_heatmap_figure(
                 [1.0, "darkred"],
             ],
             colorbar={"title": "Rate %", "ticksuffix": "%"},
-            hovertemplate=(f"{person1_name} age %{{x}}<br>%{{y}}: %{{z:.1f}}%<extra></extra>"),
+            hovertemplate=(f"{person1_name} is %{{x}}: %{{customdata}}<br>%{{y}}: %{{z:.1f}}%<extra></extra>"),
         )
     )
 
