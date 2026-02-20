@@ -1,4 +1,4 @@
-"""Edit Plan view — full-width YAML editor and Run Projection button."""
+"""Edit Plan view — full-width YAML editor."""
 
 from __future__ import annotations
 
@@ -9,11 +9,11 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     st_ace = None
 
-from app.state import apply_yaml_edits, run_projection
+from app.state import apply_yaml_edits
 
 
 def render_edit_plan_view() -> None:
-    """Render the full-width YAML editor and Run Projection button."""
+    """Render the full-width YAML editor."""
     st.header("Edit Plan")
 
     editor_version = st.session_state.get("editor_version", 0)
@@ -43,11 +43,10 @@ def render_edit_plan_view() -> None:
 
     if yaml_text != st.session_state.get("yaml_applied", ""):
         apply_yaml_edits(yaml_text)
+    else:
+        # Editor is in sync with applied state — clear any stale error.
+        st.session_state["yaml_edit_error"] = None
 
     yaml_edit_error: str | None = st.session_state.get("yaml_edit_error")
     if yaml_edit_error:
         st.error(yaml_edit_error)
-
-    if st.button("Run Projection", type="primary"):
-        run_projection()
-        st.rerun()

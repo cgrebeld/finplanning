@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 from finplanning_core.services.planning import PlanningService
 
-from app.state import MAX_YAML_SIZE_BYTES, load_service, load_service_from_yaml_text
+from app.state import MAX_YAML_SIZE_BYTES, load_service, load_service_from_yaml_text, run_projection
 
 EXAMPLES_DIR = Path("examples")
 DEFAULT_PLAN_PATH = "examples/sample-plan.yaml"
@@ -16,8 +16,8 @@ DEFAULT_PLAN_PATH = "examples/sample-plan.yaml"
 NAV_SECTIONS = [
     "Edit Plan",
     "Overview",
-    "Cash Flow",
     "Net Worth",
+    "Cash Flow",
     "Tax Analysis",
     "Monte Carlo",
     "Data & Export",
@@ -166,3 +166,8 @@ def render_sidebar() -> None:
                 label_visibility="collapsed",
             )
             st.session_state["end_year"] = int(end_year)
+
+        st.divider()
+        if st.button("Run Projection", type="primary", use_container_width=True):
+            run_projection()
+            st.rerun()
