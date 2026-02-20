@@ -130,7 +130,7 @@ def test_nav_to_monte_carlo(page: Page, streamlit_server: str) -> None:
     _click_nav(page, "Monte Carlo")
 
     expect(page.get_by_role("heading", name="Monte Carlo Simulation")).to_be_visible()
-    expect(page.get_by_role("button", name="Run")).to_be_visible()
+    expect(page.get_by_role("button", name="Run", exact=True)).to_be_visible()
     # Iterations selectbox should be present.
     expect(page.locator('[data-testid="stSelectbox"]').first).to_be_visible()
 
