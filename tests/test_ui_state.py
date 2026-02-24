@@ -166,6 +166,7 @@ def test_apply_yaml_edits_does_not_reproject_without_active_projection(monkeypat
     assert fake_st.session_state["service"] is fake_service
     assert fake_st.session_state["projection"] is None
     assert fake_st.session_state["yaml_applied"] == edited_yaml
+    assert fake_st.session_state["yaml_editor"] == edited_yaml
     assert fake_st.session_state["error"] is None
     assert reprojection_called is False
 

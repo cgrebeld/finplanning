@@ -272,6 +272,7 @@ def apply_yaml_edits(yaml_text: str) -> None:
         st.session_state["service"] = service
         st.session_state["yaml_text"] = yaml_text
         st.session_state["yaml_applied"] = yaml_text
+        st.session_state["yaml_editor"] = yaml_text
         st.session_state["projection"] = None
         st.session_state["mc_result"] = None
         st.session_state["mc_running"] = False

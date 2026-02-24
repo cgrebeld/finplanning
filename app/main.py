@@ -1,4 +1,4 @@
-"""Canadian Financial Planner — Streamlit entry point.
+"""Financial Planner Helper — Streamlit entry point.
 
 Launch with: streamlit run app/main.py
 
@@ -79,7 +79,7 @@ def _apply_global_styles() -> None:
 
 def _render_landing_page() -> None:
     """Render the feature-grid welcome screen shown before any plan is loaded."""
-    st.title("Canadian Financial Planner")
+    st.title("Financial Planning Helper")
     st.markdown(
         "Model your financial future — income, taxes, investments, and spending "
         "— across any time horizon."
@@ -120,7 +120,7 @@ def _render_landing_page() -> None:
 
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="Canadian Financial Planner", layout="wide")
+    st.set_page_config(page_title="Financial Planning Helper", layout="wide")
 
     _apply_global_styles()
 

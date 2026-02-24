@@ -1,4 +1,4 @@
-# Canadian Financial Planner
+# Financial Planning Helper
 
 A long-term financial planning tool for Canadian households. Model income, taxes, investments, and spending across any time horizon.
 
