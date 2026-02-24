@@ -135,3 +135,5 @@ def test_ace_nav_script_guards_parent_document_access():
     assert "window.document.querySelectorAll('iframe')" in script
     assert "window.parent.document.querySelectorAll('iframe')" in script
     assert "try {" in script
+    assert "[yaml-pager]" in script
+    assert "editor not found after retries" in script

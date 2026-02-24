@@ -1,5 +1,6 @@
 """Edit Plan view — full-width YAML editor."""
 
+import logging
 import re
 
 import streamlit as st
@@ -15,6 +16,7 @@ _TOP_KEY_RE = re.compile(r'^([a-zA-Z_][\w-]*):\s*(?:[^#\n]+?)?\s*(?:#.*)?$')
 _LIST_ITEM_RE = re.compile(r'^  - ')
 _NAME_4_RE = re.compile(r'^    name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
 _NAME_INLINE_RE = re.compile(r'^  - name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
+_LOGGER = logging.getLogger(__name__)
 
 
 def _parse_yaml_outline(
@@ -95,6 +97,7 @@ def _build_ace_nav_script(target_line: int) -> str:
     return f"""<script>
 (function(line) {{
   var retries = 0;
+  console.info('[yaml-pager] nav script start', {{ line: line }});
 
   function findEditorInDocument(doc) {{
     if (!doc) return null;
@@ -106,6 +109,7 @@ def _build_ace_nav_script(target_line: int) -> str:
   function tryNav() {{
     var editor = findEditorInDocument(window.document);
     if (editor) {{
+      console.info('[yaml-pager] found editor in current document', {{ line: line }});
       editor.gotoLine(line, 0, true);
       editor.focus();
       return;
@@ -119,21 +123,32 @@ def _build_ace_nav_script(target_line: int) -> str:
       if (window.parent && window.parent !== window) {{
         frames = frames.concat(Array.from(window.parent.document.querySelectorAll('iframe')));
       }}
-    }} catch (e) {{}}
+    }} catch (e) {{
+      console.warn('[yaml-pager] parent iframe access failed', e);
+    }}
+
+    console.debug('[yaml-pager] scanning iframes', {{ count: frames.length, retry: retries }});
 
     for (var i = 0; i < frames.length; i++) {{
       try {{
         var win = frames[i].contentWindow;
         editor = findEditorInDocument(win && win.document ? win.document : null);
         if (editor) {{
+          console.info('[yaml-pager] found editor in iframe', {{ index: i, line: line }});
           editor.gotoLine(line, 0, true);
           editor.focus();
           return;
         }}
-      }} catch (e) {{}}
+      }} catch (e) {{
+        console.debug('[yaml-pager] iframe scan failed', {{ index: i, error: String(e) }});
+      }}
     }}
 
-    if (++retries < 30) setTimeout(tryNav, 100);
+    if (++retries < 30) {{
+      setTimeout(tryNav, 100);
+      return;
+    }}
+    console.error('[yaml-pager] editor not found after retries', {{ retries: retries, line: line }});
   }}
 
   tryNav();
@@ -162,6 +177,7 @@ def render_edit_plan_view() -> None:
                         help=f"line {key_line}",
                         type="tertiary",
                     ):
+                        _LOGGER.info("yaml-pager click key=%s target_line=%s", key_name, key_line)
                         st.session_state["pager_target_line"] = key_line
                     for child_name, child_line in children:
                         if st.button(
@@ -171,6 +187,12 @@ def render_edit_plan_view() -> None:
                             help=f"line {child_line}",
                             type="tertiary",
                         ):
+                            _LOGGER.info(
+                                "yaml-pager click child=%s parent=%s target_line=%s",
+                                child_name,
+                                key_name,
+                                child_line,
+                            )
                             st.session_state["pager_target_line"] = child_line
 
     # ── Editor ─────────────────────────────────────────────────────────────
@@ -205,11 +227,13 @@ def render_edit_plan_view() -> None:
     if not isinstance(target_line, int):
         target_line = None
     if target_line is not None and st_ace is not None:
+        _LOGGER.info("yaml-pager inject-nav-script target_line=%s", target_line)
         st.html(
             _build_ace_nav_script(target_line),
             unsafe_allow_javascript=True,
         )
     elif target_line is not None:
+        _LOGGER.info("yaml-pager fallback-textarea target_line=%s", target_line)
         # st.text_area fallback: show a line-number hint
         st.caption(f"↑ Line {target_line}")
 
