@@ -13,8 +13,8 @@ from finplanning_core.services import (
 )
 from finplanning_core.services import PlanningService
 
-from app.components.year_grid import render_year_grid
-from app.state import get_selected_flow_year
+from ..components.year_grid import render_year_grid
+from ..state import get_selected_flow_year
 
 
 def render_data_export(projection: ProjectionResult, service: PlanningService) -> None:

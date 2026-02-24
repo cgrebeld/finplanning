@@ -1,33 +1,24 @@
-"""Financial Planner Helper — Streamlit entry point.
+"""Financial Planner Helper — Streamlit UI module.
 
-Launch with: streamlit run app/main.py
+Launch with: streamlit run streamlit_app.py
 
 The __name__ guard prevents this module's UI code from executing when
 ProcessPoolExecutor "spawn" workers re-import __main__ on macOS.
 """
 
-import sys
-from pathlib import Path
-
-# Ensure the repo root is on sys.path so "from app.*" imports work.
-# Streamlit adds the script's parent dir (app/) to sys.path, not the repo root.
-_repo_root = str(Path(__file__).resolve().parent.parent)
-if _repo_root not in sys.path:
-    sys.path.insert(0, _repo_root)
-
 import streamlit as st
 from finplanning_core.engine import ProjectionResult
 from finplanning_core.services import PlanningService
 
-from app.components.sidebar import render_sidebar
-from app.state import init_state
-from app.views.cash_flow import render_cash_flow
-from app.views.data_export import render_data_export
-from app.views.edit_plan import render_edit_plan_view
-from app.views.monte_carlo_section import render_monte_carlo_section
-from app.views.net_worth_view import render_net_worth
-from app.views.overview import render_overview
-from app.views.tax_analysis import render_tax_analysis
+from .components.sidebar import render_sidebar
+from .state import init_state
+from .views.cash_flow import render_cash_flow
+from .views.data_export import render_data_export
+from .views.edit_plan import render_edit_plan_view
+from .views.monte_carlo_section import render_monte_carlo_section
+from .views.net_worth_view import render_net_worth
+from .views.overview import render_overview
+from .views.tax_analysis import render_tax_analysis
 
 
 def _apply_global_styles() -> None:
@@ -70,6 +61,23 @@ def _apply_global_styles() -> None:
             color: rgba(150, 150, 150, 0.55);
             font-family: monospace;
             pointer-events: none;
+        }
+        /* Pager buttons: left-align text.
+           Streamlit renders button[kind="tertiary"] content inside an inner
+           <div> and <span> that both default to justify-content:center.
+           Targeting the direct child div and its span overrides that centering. */
+        button[kind="tertiary"] > div {
+            justify-content: flex-start !important;
+        }
+        button[kind="tertiary"] > div > span {
+            justify-content: flex-start !important;
+        }
+        /* Pager entries: reduce vertical spacing to ~4 px.
+           st.container(height=...) renders a stVerticalBlock with the HTML
+           attribute overflow="auto".  That element carries a 16px flex gap
+           between entries; we shrink it to 0.25rem (~4 px). */
+        [data-testid="stVerticalBlock"][overflow="auto"] {
+            gap: 0.01rem !important;
         }
         </style>
         """,
@@ -119,7 +127,8 @@ def _render_landing_page() -> None:
     st.info("← Click **Load** to upload a plan file, or **Load Sample** to try a bundled example.", icon="👈")
 
 
-if __name__ == "__main__":
+def run_app() -> None:
+    """Render the Streamlit application."""
     st.set_page_config(page_title="Financial Planning Helper", layout="wide")
 
     _apply_global_styles()
@@ -175,3 +184,7 @@ if __name__ == "__main__":
         case _:
             st.error(f"Unknown section: {nav_section!r}")
             st.stop()
+
+
+if __name__ == "__main__":
+    run_app()

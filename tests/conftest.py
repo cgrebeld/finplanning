@@ -20,7 +20,7 @@ def streamlit_server() -> str:
         [
             _STREAMLIT,
             "run",
-            "app/main.py",
+            "streamlit_app.py",
             "--server.headless=true",
             "--server.port=8502",
         ],

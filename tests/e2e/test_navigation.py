@@ -174,3 +174,44 @@ def test_year_slider_persists(page: Page, streamlit_server: str) -> None:
     expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
         timeout=_SLOW_TIMEOUT
     )
+
+
+def test_pager_button_navigates_editor(page: Page, streamlit_server: str) -> None:
+    """Clicking a pager section button moves the ACE editor cursor to that line."""
+    from pathlib import Path
+
+    # Determine the 1-indexed line number of 'accounts:' in the sample plan.
+    sample_lines = Path("examples/sample-plan.yaml").read_text(encoding="utf-8").splitlines()
+    accounts_line = next(
+        i + 1 for i, ln in enumerate(sample_lines) if ln.startswith("accounts:")
+    )
+
+    _load_plan(page, streamlit_server)
+
+    # The pager "accounts" button should be visible.
+    accounts_btn = page.get_by_role("button", name="accounts", exact=True)
+    expect(accounts_btn).to_be_visible(timeout=_SLOW_TIMEOUT)
+
+    accounts_btn.click()
+    page.wait_for_timeout(1500)  # allow JS navigation to execute
+
+    # Read the ACE editor's cursor row via JS.
+    cursor_row: int | None = page.evaluate("""
+        () => {
+            const frames = document.querySelectorAll('iframe');
+            for (const frame of frames) {
+                try {
+                    const el = frame.contentDocument?.querySelector('.ace_editor');
+                    if (el?.env?.editor) {
+                        return el.env.editor.getCursorPosition().row + 1;
+                    }
+                } catch (e) {}
+            }
+            return null;
+        }
+    """)
+
+    assert cursor_row == accounts_line, (
+        f"Expected ACE cursor at line {accounts_line} (accounts: key), got {cursor_row!r}. "
+        "JS navigation is likely broken."
+    )

@@ -4,8 +4,8 @@ import streamlit as st
 from finplanning_core.risk import MonteCarloResult
 from finplanning_core.services import PlanningService
 
-from app.state import MC_RETURN_METHODS, MonteCarloReturnMethod, run_monte_carlo
-from app.views.monte_carlo import render_monte_carlo_view
+from ..state import MC_RETURN_METHODS, MonteCarloReturnMethod, run_monte_carlo
+from .monte_carlo import render_monte_carlo_view
 
 
 def render_monte_carlo_section() -> None:

@@ -4,8 +4,8 @@ import streamlit as st
 from finplanning_core.engine import ProjectionResult
 from finplanning_core.services import PlanningService
 
-from app.charts.net_worth import render_net_worth_chart
-from app.state import get_selected_flow_year
+from ..charts.net_worth import render_net_worth_chart
+from ..state import get_selected_flow_year
 
 
 def render_net_worth(projection: ProjectionResult, service: PlanningService) -> None:

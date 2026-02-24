@@ -23,7 +23,7 @@ This installs Streamlit, Plotly, Pandas, and the bundled `finplanning_core` engi
 ## Run
 
 ```bash
-streamlit run app/main.py
+streamlit run streamlit_app.py
 ```
 
 Then open [http://localhost:8501](http://localhost:8501) in your browser.

@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 from finplanning_core.services import PlanningService
 
-from app.state import MAX_YAML_SIZE_BYTES, load_service, load_service_from_yaml_text, run_projection
+from ..state import MAX_YAML_SIZE_BYTES, load_service, load_service_from_yaml_text, run_projection
 
 try:
     _APP_VERSION = version("finplanning-ui")

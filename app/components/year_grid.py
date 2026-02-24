@@ -6,7 +6,7 @@ from finplanning_core.engine import ProjectionResult
 from finplanning_core.models import HouseholdPlan
 from pandas.io.formats.style import Styler
 
-from app.formatters import projection_to_dataframe, style_cash_flow
+from ..formatters import projection_to_dataframe, style_cash_flow
 
 
 def _style_selected_year_row(styled: Styler, selected_year: int | None) -> Styler:

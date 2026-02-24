@@ -4,8 +4,8 @@ import streamlit as st
 from finplanning_core.engine import ProjectionResult
 from finplanning_core.services import PlanningService
 
-from app.charts.gap_analysis import render_gap_chart
-from app.components.summary_metrics import render_summary_metrics
+from ..charts.gap_analysis import render_gap_chart
+from ..components.summary_metrics import render_summary_metrics
 
 
 def render_overview(projection: ProjectionResult, service: PlanningService) -> None:
