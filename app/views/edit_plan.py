@@ -90,6 +90,57 @@ def _parse_yaml_outline(
     return outline
 
 
+def _build_ace_nav_script(target_line: int) -> str:
+    """Build the ACE navigation script with cross-origin-safe document access."""
+    return f"""<script>
+(function(line) {{
+  var retries = 0;
+
+  function findEditorInDocument(doc) {{
+    if (!doc) return null;
+    var el = doc.querySelector('.ace_editor');
+    if (el && el.env && el.env.editor) return el.env.editor;
+    return null;
+  }}
+
+  function tryNav() {{
+    var editor = findEditorInDocument(window.document);
+    if (editor) {{
+      editor.gotoLine(line, 0, true);
+      editor.focus();
+      return;
+    }}
+
+    var frames = [];
+    try {{
+      frames = frames.concat(Array.from(window.document.querySelectorAll('iframe')));
+    }} catch (e) {{}}
+    try {{
+      if (window.parent && window.parent !== window) {{
+        frames = frames.concat(Array.from(window.parent.document.querySelectorAll('iframe')));
+      }}
+    }} catch (e) {{}}
+
+    for (var i = 0; i < frames.length; i++) {{
+      try {{
+        var win = frames[i].contentWindow;
+        editor = findEditorInDocument(win && win.document ? win.document : null);
+        if (editor) {{
+          editor.gotoLine(line, 0, true);
+          editor.focus();
+          return;
+        }}
+      }} catch (e) {{}}
+    }}
+
+    if (++retries < 30) setTimeout(tryNav, 100);
+  }}
+
+  tryNav();
+}})({target_line});
+</script>"""
+
+
 def render_edit_plan_view() -> None:
     """Render the YAML editor with a left-side section pager."""
     st.header("Edit Plan")
@@ -155,27 +206,7 @@ def render_edit_plan_view() -> None:
         target_line = None
     if target_line is not None and st_ace is not None:
         st.html(
-            f"""<script>
-(function(line) {{
-  var retries = 0;
-  function tryNav() {{
-    var frames = window.parent.document.querySelectorAll('iframe');
-    for (var i = 0; i < frames.length; i++) {{
-      try {{
-        var win = frames[i].contentWindow;
-        var el = win.document.querySelector('.ace_editor');
-        if (el && el.env && el.env.editor) {{
-          el.env.editor.gotoLine(line, 0, true);
-          el.env.editor.focus();
-          return;
-        }}
-      }} catch(e) {{}}
-    }}
-    if (++retries < 30) setTimeout(tryNav, 100);
-  }}
-  tryNav();
-}})({target_line});
-</script>""",
+            _build_ace_nav_script(target_line),
             unsafe_allow_javascript=True,
         )
     elif target_line is not None:

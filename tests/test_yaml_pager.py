@@ -1,6 +1,6 @@
-"""Tests for the YAML pager outline parser."""
+"""Tests for the YAML pager outline parser and editor navigation helpers."""
 
-from app.views.edit_plan import _parse_yaml_outline
+from app.views.edit_plan import _build_ace_nav_script, _parse_yaml_outline
 
 
 def test_empty_string_returns_empty_list():
@@ -128,3 +128,10 @@ def test_hyphenated_top_level_key():
     assert len(result) == 1
     assert result[0][0] == "scenario-overrides"
     assert result[0][2] == []  # no named children (no list items with name:)
+
+
+def test_ace_nav_script_guards_parent_document_access():
+    script = _build_ace_nav_script(12)
+    assert "window.document.querySelectorAll('iframe')" in script
+    assert "window.parent.document.querySelectorAll('iframe')" in script
+    assert "try {" in script
