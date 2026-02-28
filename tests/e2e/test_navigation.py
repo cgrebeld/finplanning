@@ -180,8 +180,12 @@ def test_pager_button_navigates_editor(page: Page, streamlit_server: str) -> Non
     """Clicking a pager section button moves the ACE editor cursor to that line."""
     from pathlib import Path
 
-    # Determine the 1-indexed line number of 'accounts:' in the sample plan.
-    sample_lines = Path("examples/sample-plan.yaml").read_text(encoding="utf-8").splitlines()
+    # Mirror sidebar sample ordering: sorted *.yaml excluding settings.yaml.
+    default_sample = sorted(
+        p for p in Path("examples").glob("*.yaml") if p.name != "settings.yaml"
+    )[0]
+    # Determine the 1-indexed line number of 'accounts:' in the default sample.
+    sample_lines = default_sample.read_text(encoding="utf-8").splitlines()
     accounts_line = next(
         i + 1 for i, ln in enumerate(sample_lines) if ln.startswith("accounts:")
     )
