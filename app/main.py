@@ -125,6 +125,27 @@ def _render_landing_page() -> None:
         "and full federal + provincial (BC) tax modelling with bracket indexation."
     )
     st.info("← Click **Load** to upload a plan file, or **Load Sample** to try a bundled example.", icon="👈")
+    st.markdown("### Engine Modeling Features")
+    st.markdown(
+        """
+        - Multi-person household modeling with age-based timelines, life expectancy, and province-aware tax treatment (BC tax data support today).
+        - Account-level modeling across `RRSP`, `RRIF`, `TFSA`, `NON_REGISTERED`, `LIRA`, and `LIF`.
+        - Asset-mix-based return projection for equity, fixed income, cash, and real estate assumptions.
+        - Cash-flow projection with recurring income/expenses, one-time events, and recurring periodic expenses.
+        - Income modeling for employment, self-employment, pension, rental, CPP, OAS, and other sources.
+        - CPP and OAS benefit modeling with configurable start ages and OAS clawback logic.
+        - Federal + provincial income tax calculations by year, with future tax table indexation.
+        - Retirement decumulation with configurable withdrawal order (for example, non-registered before registered accounts).
+        - Registered contribution handling for RRSP and TFSA room constraints when annual surplus is available.
+        - Pension income splitting optimization (where eligible) to reduce household tax burden.
+        - Inflation modeling with category-specific effects and healthcare inflation premium.
+        - Retirement spending falloff/rebound curve support via a Blanchett-style spending decline assumption.
+        - Glide-path support for age-based equity-risk reduction over time.
+        - Black-swan stress testing (equity shock trigger year plus flat-return recovery period).
+        - Scenario planning with base case + override scenarios and side-by-side comparison.
+        - Monte Carlo simulation with configurable iterations/seed and depletion-risk outputs.
+        """
+    )
 
 
 def run_app() -> None:

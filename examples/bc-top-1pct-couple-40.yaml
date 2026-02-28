@@ -1,0 +1,225 @@
+# Schema version for this plan file format.
+schema_version: 1
+
+# Household-level metadata.
+household:
+  id: hh-bc-top1-40
+  name: "BC Top 1% Couple (Age 40)"
+  province: BC
+
+# People in the household. IDs are referenced by accounts/income items.
+persons:
+  - id: morgan
+    name: "Morgan Smith"
+    birth_date: 1986
+    life_expectancy: 94
+    cpp_start_age: 65
+    oas_start_age: 65
+
+  - id: riley
+    name: "Riley Smith"
+    birth_date: 1986
+    life_expectancy: 94
+    cpp_start_age: 65
+    oas_start_age: 65
+
+# Investment and registered accounts.
+accounts:
+  - id: morgan-rrsp
+    owner: morgan
+    name: "Morgan RRSP"
+    type: RRSP
+    balance: 360000
+    cost_basis: 360000
+    asset_mix:
+      equity: 0.70
+      fixed_income: 0.25
+      cash: 0.05
+
+  - id: morgan-tfsa
+    owner: morgan
+    name: "Morgan TFSA"
+    type: TFSA
+    balance: 145000
+    cost_basis: 145000
+    asset_mix:
+      equity: 0.80
+      fixed_income: 0.15
+      cash: 0.05
+
+  - id: riley-rrsp
+    owner: riley
+    name: "Riley RRSP"
+    type: RRSP
+    balance: 340000
+    cost_basis: 340000
+    asset_mix:
+      equity: 0.70
+      fixed_income: 0.25
+      cash: 0.05
+
+  - id: riley-tfsa
+    owner: riley
+    name: "Riley TFSA"
+    type: TFSA
+    balance: 145000
+    cost_basis: 145000
+    asset_mix:
+      equity: 0.80
+      fixed_income: 0.15
+      cash: 0.05
+
+  - id: joint-nonreg
+    owner: joint
+    name: "Joint Non-Registered Portfolio"
+    type: NON_REGISTERED
+    balance: 1800000
+    cost_basis: 1100000
+    asset_mix:
+      equity: 0.75
+      fixed_income: 0.20
+      cash: 0.05
+
+# Ongoing income sources.
+income:
+  - id: morgan-salary
+    owner: morgan
+    name: "Morgan Executive Compensation"
+    type: EMPLOYMENT
+    annual_amount: 390000
+    start_date: 2020
+    end_date: 2051
+
+  - id: riley-salary
+    owner: riley
+    name: "Riley Corporate Counsel Compensation"
+    type: EMPLOYMENT
+    annual_amount: 320000
+    start_date: 2020
+    end_date: 2051
+
+  - id: rental-income
+    owner: joint
+    name: "Rental Property Net Income"
+    type: RENTAL
+    annual_amount: 45000
+    start_date: 2026
+    end_date: 2060
+
+# Ongoing expense items.
+expenses:
+  - id: living-core
+    name: "Core Living Costs"
+    category: ESSENTIAL
+    annual_amount: 115000
+
+  - id: mortgage
+    name: "Mortgage Payments"
+    category: ESSENTIAL
+    annual_amount: 78000
+    end_date: 2046
+
+  - id: private-school
+    name: "Private School Tuition and Fees"
+    category: DISCRETIONARY
+    annual_amount: 52000
+    end_date: 2038
+
+  - id: child-activities
+    name: "Children Activities and Camps"
+    category: DISCRETIONARY
+    annual_amount: 18000
+    end_date: 2036
+
+  - id: healthcare
+    name: "Healthcare and Insurance"
+    category: HEALTHCARE
+    annual_amount: 12000
+
+  - id: travel
+    name: "Travel and Lifestyle"
+    category: DISCRETIONARY
+    annual_amount: 35000
+
+# One-off events that occur in a specific year.
+one_time_events:
+  - id: mortgage-payoff
+    name: "Final Mortgage Payoff"
+    type: expense
+    amount: 420000
+    year: 2046
+
+  - id: vacation-property-downpayment
+    name: "Vacation Property Down Payment"
+    type: expense
+    amount: 300000
+    year: 2032
+
+# Repeating expense events (every N years).
+recurring_expenses:
+  - id: child1-postsecondary
+    name: "Child 1 Postsecondary (4 years)"
+    amount: 35000
+    start_year: 2034
+    period_years: 1
+    end_year: 2037
+
+  - id: child2-postsecondary
+    name: "Child 2 Postsecondary (4 years)"
+    amount: 36000
+    start_year: 2037
+    period_years: 1
+    end_year: 2040
+
+  - id: vehicle-replacement
+    name: "Vehicle Replacement"
+    amount: 65000
+    start_year: 2029
+    period_years: 6
+
+  - id: major-home-upgrade
+    name: "Major Home Upgrade"
+    amount: 120000
+    start_year: 2030
+    period_years: 10
+
+# Modeling assumptions used across the projection.
+assumptions:
+  returns:
+    equity: 0.06
+    fixed_income: 0.03
+    cash: 0.02
+  inflation: 0.02
+  withdrawal_order:
+    - NON_REGISTERED
+    - RRSP
+    - TFSA
+  investment_income_model:
+    equity_dividend_yield: 0.02
+    fixed_income_distribution_yield: 0.035
+    cash_interest_yield: 0.02
+    capital_gains_inclusion_rate: 0.5
+  contribution_limits:
+    rrsp_contribution_room_by_owner:
+      morgan: 50000
+      riley: 50000
+  glide_path:
+    equity_by_age:
+      55: 0.70
+      65: 0.60
+      75: 0.50
+      85: 0.40
+      95: 0.30
+  black_swan:
+    equity_shock_pct: -0.30
+    flat_return_years: 2
+    trigger_year: 2031
+
+# Scenario list (one base case).
+scenarios:
+  - id: base
+    name: "Base Case"
+    is_base_case: true
+
+# Per-scenario override payloads keyed by scenario ID.
+scenario_overrides: {}

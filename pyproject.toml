@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "finplanning-ui"
-version = "0.2.5"
+version = "0.2.6"
 description = "Financial planning UI — Streamlit application"
 requires-python = ">=3.12"
 
