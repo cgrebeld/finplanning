@@ -1,4 +1,4 @@
-name: Update Core Wheel
+name: Update Native Wheel
 on:
   repository_dispatch:
     types: [core-release]
@@ -29,21 +29,21 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Download wheel from private release
+      - name: Download Linux x86_64 native wheel from release
         run: |
           mkdir -p wheels
-          rm -f wheels/finplanning_core-*.whl
+          rm -f wheels/*.whl
           gh release download "${{ steps.version.outputs.version }}" \
             --repo cgrebeld/finplanning-engine \
-            --pattern "finplanning_core-*.whl" \
+            --pattern "finplanning_core_native-*-x86_64.whl" \
             --dir wheels/
         env:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
 
       - name: Update requirements.txt
         run: |
-          WHEEL_NAME=$(ls wheels/finplanning_core-*.whl | head -1 | xargs basename)
-          sed -i "s|./wheels/finplanning_core-.*\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
+          WHEEL_NAME=$(ls wheels/finplanning_core_native-*-x86_64.whl | head -1 | xargs basename)
+          sed -i "s|^\\./wheels/finplanning_core_native-.*\\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
 
       - name: Commit and tag
         run: |
@@ -51,6 +51,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add wheels/ requirements.txt
-          git commit -m "chore: update finplanning-core to ${VERSION}"
+          git commit -m "chore: update native wheel to ${VERSION}" || exit 0
           git tag "core-${VERSION}"
           git push origin main --tags

@@ -50,7 +50,7 @@ source .venv/bin/activate     # Windows: .venv\Scripts\activate
 uv pip install -r requirements.txt
 ```
 
-This installs Streamlit, Plotly, Pandas, and the bundled `finplanning_core` engine from `wheels/`.
+This installs Streamlit, Plotly, Pandas, `finplanning-core`, and the CI-managed Linux `x86_64` native wheel from `wheels/`.
 
 > **Note:** `requirements.txt` and `wheels/` are updated automatically by CI when a new engine release is published. Do not edit `requirements.txt` manually.
 
