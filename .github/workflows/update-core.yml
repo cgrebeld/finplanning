@@ -35,14 +35,14 @@ jobs:
           rm -f wheels/*.whl
           gh release download "${{ steps.version.outputs.version }}" \
             --repo cgrebeld/finplanning-engine \
-            --pattern "finplanning_core_native-*-x86_64.whl" \
+            --pattern "finplanning_core_native-*x86_64.whl" \
             --dir wheels/
         env:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
 
       - name: Update requirements.txt
         run: |
-          WHEEL_NAME=$(ls wheels/finplanning_core_native-*-x86_64.whl | head -1 | xargs basename)
+          WHEEL_NAME=$(ls wheels/finplanning_core_native-*x86_64.whl | head -1 | xargs basename)
           sed -i "s|^\\./wheels/finplanning_core_native-.*\\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
 
       - name: Commit and tag
