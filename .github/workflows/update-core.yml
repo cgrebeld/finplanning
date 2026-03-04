@@ -1,4 +1,4 @@
-name: Update Native Wheel
+name: Update Core Wheel
 on:
   repository_dispatch:
     types: [core-release]
@@ -9,7 +9,7 @@ on:
         required: false
 
 jobs:
-  update-wheel:
+  update-core-wheel:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,30 +29,33 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Download Linux x86_64 native wheel from release
-        run: |
-          mkdir -p wheels
-          rm -f wheels/*.whl
-          gh release download "${{ steps.version.outputs.version }}" \
-            --repo cgrebeld/finplanning-engine \
-            --pattern "finplanning_core_native-*x86_64.whl" \
-            --dir wheels/
+      - name: Resolve Linux x86_64 core wheel asset
+        id: wheel
         env:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          WHEEL_NAME=$(gh release view "$VERSION" \
+            --repo cgrebeld/finplanning-engine \
+            --json assets \
+            -q '.assets[] | select(.name | test("^finplanning_core-.*x86_64\\.whl$")) | .name' \
+            | head -1)
+          test -n "$WHEEL_NAME"
+          echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Update requirements.txt
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          sed -i "s|^finplanning-core @ git+https://github.com/cgrebeld/finplanning-engine.git@v.*|finplanning-core @ git+https://github.com/cgrebeld/finplanning-engine.git@${VERSION}|" requirements.txt
-          WHEEL_NAME=$(ls wheels/finplanning_core_native-*x86_64.whl | head -1 | xargs basename)
-          sed -i "s|^\\./wheels/finplanning_core_native-.*\\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
+          WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
+          WHEEL_URL="https://github.com/cgrebeld/finplanning-engine/releases/download/${VERSION}/${WHEEL_NAME}"
+          sed -i "s|^finplanning-core @ .*|finplanning-core @ ${WHEEL_URL}|" requirements.txt
 
       - name: Commit and tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add wheels/ requirements.txt
-          git commit -m "chore: update native wheel to ${VERSION}" || exit 0
+          git add requirements.txt
+          git commit -m "chore: update core wheel to ${VERSION}" || exit 0
           git tag "core-${VERSION}"
           git push origin main --tags
