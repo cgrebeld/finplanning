@@ -59,7 +59,7 @@ jobs:
       - name: Update requirements.txt
         run: |
           WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
-          sed -i "s|^finplanning-core @ .*|./wheels/${WHEEL_NAME}|" requirements.txt
+          sed -E -i -e 's#^(finplanning-core @ .*|\./wheels/finplanning_core-.*\.whl)$#./wheels/'"$WHEEL_NAME"'#' requirements.txt
 
       - name: Commit and tag
         run: |
