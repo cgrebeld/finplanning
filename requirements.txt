@@ -1,4 +1,4 @@
-finplanning-core @ https://github.com/cgrebeld/finplanning-engine/releases/download/v0.3.7/finplanning_core-0.3.1-cp312-abi3-manylinux_2_28_x86_64.whl
+./wheels/finplanning_core-0.3.1-cp312-abi3-manylinux_2_28_x86_64.whl
 streamlit>=1.30,<2
 plotly>=5.18,<6
 pandas>=2.1,<3
