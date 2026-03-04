@@ -64,9 +64,14 @@ jobs:
       - name: Commit and tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          TAG_NAME="core-${VERSION}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add requirements.txt wheels/
           git commit -m "chore: update core wheel to ${VERSION}" || exit 0
-          git tag "core-${VERSION}"
-          git push origin main --tags
+          if git ls-remote --exit-code --tags origin "${TAG_NAME}" >/dev/null 2>&1; then
+            git push origin main
+          else
+            git tag "${TAG_NAME}"
+            git push origin main --tags
+          fi
