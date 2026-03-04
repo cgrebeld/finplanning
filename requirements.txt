@@ -1,4 +1,4 @@
-finplanning-core>=0.3.1
+finplanning-core @ git+https://github.com/cgrebeld/finplanning-engine.git@v0.3.6
 ./wheels/finplanning_core_native-0.1.0-cp312-abi3-manylinux_2_28_x86_64.whl
 streamlit>=1.30,<2
 plotly>=5.18,<6

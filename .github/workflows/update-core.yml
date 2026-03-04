@@ -42,6 +42,8 @@ jobs:
 
       - name: Update requirements.txt
         run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s|^finplanning-core @ git+https://github.com/cgrebeld/finplanning-engine.git@v.*|finplanning-core @ git+https://github.com/cgrebeld/finplanning-engine.git@${VERSION}|" requirements.txt
           WHEEL_NAME=$(ls wheels/finplanning_core_native-*x86_64.whl | head -1 | xargs basename)
           sed -i "s|^\\./wheels/finplanning_core_native-.*\\.whl|./wheels/${WHEEL_NAME}|" requirements.txt
 
