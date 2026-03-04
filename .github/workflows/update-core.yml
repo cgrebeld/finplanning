@@ -43,19 +43,30 @@ jobs:
           test -n "$WHEEL_NAME"
           echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Update requirements.txt
+      - name: Download core wheel into repository
+        env:
+          GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
-          WHEEL_URL="https://github.com/cgrebeld/finplanning-engine/releases/download/${VERSION}/${WHEEL_NAME}"
-          sed -i "s|^finplanning-core @ .*|finplanning-core @ ${WHEEL_URL}|" requirements.txt
+          mkdir -p wheels
+          rm -f wheels/*.whl
+          gh release download "$VERSION" \
+            --repo cgrebeld/finplanning-engine \
+            --pattern "$WHEEL_NAME" \
+            --dir wheels/
+
+      - name: Update requirements.txt
+        run: |
+          WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
+          sed -i "s|^finplanning-core @ .*|./wheels/${WHEEL_NAME}|" requirements.txt
 
       - name: Commit and tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add requirements.txt
+          git add requirements.txt wheels/
           git commit -m "chore: update core wheel to ${VERSION}" || exit 0
           git tag "core-${VERSION}"
           git push origin main --tags
