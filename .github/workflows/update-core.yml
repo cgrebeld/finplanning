@@ -27,7 +27,12 @@ jobs:
           if [ -z "$VERSION" ]; then
             VERSION=$(gh release view --repo cgrebeld/finplanning-engine --json tagName -q .tagName)
           fi
+          if [[ "$VERSION" != v* ]]; then
+            VERSION="v${VERSION}"
+          fi
+          WHEEL_VERSION="${VERSION#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "wheel_version=$WHEEL_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Resolve Linux x86_64 core wheel asset
         id: wheel
@@ -35,10 +40,12 @@ jobs:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          WHEEL_VERSION="${{ steps.version.outputs.wheel_version }}"
           WHEEL_NAME=$(gh release view "$VERSION" \
             --repo cgrebeld/finplanning-engine \
             --json assets \
-            -q '.assets[] | select(.name | test("^finplanning_core-.*x86_64\\.whl$")) | .name' \
+            -q '.assets[].name' \
+            | grep -E "^finplanning_core-${WHEEL_VERSION}-.*x86_64\\.whl$" \
             | head -1)
           test -n "$WHEEL_NAME"
           echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
@@ -56,6 +63,9 @@ jobs:
             --pattern "$WHEEL_NAME" \
             --dir wheels/
 
+      - name: Initialize Git LFS
+        run: git lfs install --local
+
       - name: Update requirements.txt
         run: |
           WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
@@ -64,14 +74,23 @@ jobs:
       - name: Commit and tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          TAG_NAME="core-${VERSION}"
+          TAG_NAME="${VERSION}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add requirements.txt wheels/
-          git commit -m "chore: update core wheel to ${VERSION}" || exit 0
-          if git ls-remote --exit-code --tags origin "${TAG_NAME}" >/dev/null 2>&1; then
+          git add .gitattributes requirements.txt wheels/
+          CHANGED=0
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: update core wheel to ${VERSION}"
+            CHANGED=1
+          fi
+          if [ "$CHANGED" -eq 1 ]; then
             git push origin main
+          fi
+          if git ls-remote --exit-code --tags origin "${TAG_NAME}" >/dev/null 2>&1; then
+            echo "Tag ${TAG_NAME} already exists."
           else
             git tag "${TAG_NAME}"
-            git push origin main --tags
+            git push origin "${TAG_NAME}"
           fi
