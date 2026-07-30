@@ -13,3 +13,6 @@ uv.lock
 .worktrees/
 .claude/
 .playwright-cli/
+
+# Local code knowledge graph
+graphify-out/

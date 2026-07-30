@@ -1,0 +1,13 @@
+# Generated output and local dependency/build trees
+.git/
+.playwright/
+.playwright-cli/
+.pytest_cache/
+.ruff_cache/
+.uv-cache/
+.venv/
+.worktrees/
+build/
+dist/
+graphify-out/
+wheels/
