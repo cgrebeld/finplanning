@@ -17,3 +17,15 @@ This project has a local Graphify knowledge graph in `graphify-out/`.
   `AMBIGUOUS` relationships in source and tests before changing code.
 - The graph accelerates discovery; source code, tests, and project documentation
   remain authoritative. Fall back to `rg` when the graph lacks precise detail.
+
+## Subagent Model Policy
+
+When delegating independent work:
+
+- Use `gpt-5.6-sol` with high effort for architecture, cross-cutting or
+  security-sensitive changes, difficult debugging, and integration review.
+- Use `gpt-5.6-terra` with medium effort for focused implementation, tests,
+  documentation, and repository exploration.
+- Keep the coordinating agent on `gpt-5.6-sol` with high or higher effort.
+- If model override is unavailable in the current Codex workflow, inherit the
+  coordinator's model rather than attempting unsupported configuration changes.
