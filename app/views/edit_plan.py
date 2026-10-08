@@ -1,9 +1,11 @@
-"""Edit Plan view — full-width YAML editor."""
+"""Edit Plan view — YAML editor plus a portfolio profile and equity-region form."""
 
 import logging
 import re
+from typing import Any
 
 import streamlit as st
+import yaml
 
 try:
     from streamlit_ace import st_ace
@@ -17,6 +19,130 @@ _LIST_ITEM_RE = re.compile(r'^  - ')
 _NAME_4_RE = re.compile(r'^    name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
 _NAME_INLINE_RE = re.compile(r'^  - name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
 _LOGGER = logging.getLogger(__name__)
+
+PROFILES = ("GLOBAL_CAD_2026_09", "LEGACY_US")
+REGIONS = ("CANADA", "US", "DEVELOPED_EX_NA", "EMERGING")
+_REGION_LABELS = {"CANADA": "Canada", "US": "US", "DEVELOPED_EX_NA": "Developed ex-NA", "EMERGING": "Emerging"}
+# MSCI ACWI as of 2026-09-30: the engine's GLOBAL_CAD_2026_09 default weights.
+_DEFAULT_WEIGHTS = {"CANADA": 0.029, "US": 0.6421, "DEVELOPED_EX_NA": 0.2093, "EMERGING": 0.1196}
+
+type Regions = dict[str, float] | None
+
+
+def _check_regions(where: str, regions: Regions) -> None:
+    if regions is None:
+        return
+    if any(not 0.0 <= weight <= 1.0 for weight in regions.values()):
+        raise ValueError(f"{where}: equity region weights must be between 0 and 1")
+    if abs(sum(regions.values()) - 1.0) > 0.001:
+        raise ValueError(f"{where}: equity region weights sum to {sum(regions.values()):.4f}, not 1")
+
+
+def apply_portfolio_settings(
+    yaml_text: str, profile: str, plan_regions: Regions, account_regions: dict[str, Regions]
+) -> str:
+    """Return the plan YAML with its market profile and plan/account equity regions set.
+
+    ``account_regions`` lists every account override; other accounts use the plan weights. Global
+    profiles drop ``canadian_equity_share`` (LEGACY_US only; the CANADA weight replaces it).
+    LEGACY_US drops regional weights, which it rejects. Raises ValueError for weights not summing to 1.
+    """
+    if profile not in PROFILES:
+        raise ValueError(f"Unknown portfolio profile {profile!r}")
+    legacy = profile == "LEGACY_US"
+    if not legacy:
+        _check_regions("Plan", plan_regions)
+        for account_id, regions in account_regions.items():
+            _check_regions(f"Account {account_id}", regions)
+    raw = yaml.safe_load(yaml_text)
+    portfolio = raw.setdefault("assumptions", {}).get("portfolio") or {}
+    portfolio["profile"] = profile
+    portfolio.pop("equity_regions", None)
+    if plan_regions is not None and not legacy:
+        portfolio["equity_regions"] = {region: weight for region, weight in plan_regions.items() if weight}
+    raw["assumptions"]["portfolio"] = portfolio
+    for account in raw.get("accounts") or []:
+        account.pop("equity_regions", None)
+        if legacy:
+            continue
+        account.pop("canadian_equity_share", None)
+        regions = account_regions.get(account.get("id"))
+        if regions is not None:
+            account["equity_regions"] = {region: weight for region, weight in regions.items() if weight}
+    return yaml.safe_dump(raw, sort_keys=False, allow_unicode=True)
+
+
+def _region_inputs(key: str, current: dict[str, Any] | None) -> dict[str, float]:
+    weights = {region: float((current or _DEFAULT_WEIGHTS).get(region, 0.0)) for region in REGIONS}
+    cols = st.columns(len(REGIONS))
+    values = {
+        region: col.number_input(
+            _REGION_LABELS[region], 0.0, 1.0, weights[region], 0.01, format="%.4f", key=f"{key}_{region}"
+        )
+        for region, col in zip(REGIONS, cols, strict=True)
+    }
+    st.caption(f"Sum {sum(values.values()):.4f} (must be 1)")
+    return values
+
+
+def _render_portfolio_form(yaml_text: str, editor_version: int) -> None:
+    try:
+        raw = yaml.safe_load(yaml_text)
+    except yaml.YAMLError:
+        return
+    if not isinstance(raw, dict):
+        return
+    portfolio = (raw.get("assumptions") or {}).get("portfolio") or {}
+    equity_accounts = [
+        a for a in raw.get("accounts") or [] if isinstance(a, dict) and (a.get("asset_mix") or {}).get("equity")
+    ]
+    key = f"portfolio_{editor_version}"
+    with st.expander("Portfolio profile and equity regions"):
+        current = portfolio.get("profile", PROFILES[0])
+        profile = st.selectbox(
+            "Market profile",
+            PROFILES,
+            index=PROFILES.index(current) if current in PROFILES else 0,
+            key=f"{key}_profile",
+            help="GLOBAL_CAD_2026_09: CAD returns 1991-2025 for four equity regions (unhedged), Canadian bonds "
+            "and T-bills. LEGACY_US: the pre-0.18 US-only history, which needs canadian_equity_share on "
+            "taxable equity accounts instead of regions.",
+        )
+        plan_regions: Regions = None
+        account_regions: dict[str, Regions] = {}
+        if profile == "LEGACY_US":
+            st.caption("LEGACY_US uses one equity series; regional weights are removed on apply.")
+        else:
+            if st.checkbox(
+                "Set plan equity weights (otherwise MSCI ACWI 2026-09-30)",
+                value=portfolio.get("equity_regions") is not None,
+                key=f"{key}_plan",
+            ):
+                plan_regions = _region_inputs(f"{key}_plan", portfolio.get("equity_regions"))
+            for account in equity_accounts:
+                account_id = account.get("id")
+                if st.checkbox(
+                    f"Override equity weights for {account_id}",
+                    value=account.get("equity_regions") is not None,
+                    key=f"{key}_acct_{account_id}",
+                ):
+                    account_regions[account_id] = _region_inputs(
+                        f"{key}_acct_{account_id}", account.get("equity_regions") or plan_regions
+                    )
+            st.caption("canadian_equity_share is LEGACY_US only and is removed on apply.")
+        st.caption("Applying rewrites the YAML and drops its comments.")
+        if st.button("Apply portfolio settings", key=f"{key}_apply"):
+            try:
+                new_text = apply_portfolio_settings(yaml_text, profile, plan_regions, account_regions)
+            except ValueError as exc:
+                st.error(str(exc))
+                return
+            apply_yaml_edits(new_text)
+            if st.session_state.get("yaml_edit_error"):  # the engine rejected it; keep the editor as is
+                st.error(st.session_state["yaml_edit_error"])
+                return
+            st.session_state["editor_version"] = editor_version + 1
+            st.rerun()
 
 
 def _parse_yaml_outline(
@@ -161,6 +287,7 @@ def render_edit_plan_view() -> None:
     st.header("Edit Plan")
 
     yaml_text_for_pager = st.session_state.get("yaml_editor", "")
+    _render_portfolio_form(yaml_text_for_pager, st.session_state.get("editor_version", 0))
     outline = _parse_yaml_outline(yaml_text_for_pager)
 
     col_pager, col_editor = st.columns([1, 4])

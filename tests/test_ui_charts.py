@@ -284,5 +284,6 @@ def test_net_worth_figure_stacks_real_assets_into_total() -> None:
 
 
 def test_net_worth_figure_omits_real_assets_when_plan_has_none() -> None:
-    projection, plan = _make_projection_and_plan()
+    service = PlanningService.from_yaml("examples/canada-typical-40-couple.yaml")
+    projection, plan = service.run_projection(scenario_id="base"), service.plan
     assert "Real Assets" not in {trace.name for trace in build_net_worth_figure(projection, plan).data}

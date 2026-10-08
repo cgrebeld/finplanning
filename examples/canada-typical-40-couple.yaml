@@ -14,6 +14,7 @@ persons:
     birth_date: 1986
     life_expectancy: 92
     cpp_start_age: 65
+    cpp_benefit_percentage: 1.0 # Share of the maximum CPP benefit (required).
     oas_start_age: 65
 
   - id: taylor
@@ -21,6 +22,7 @@ persons:
     birth_date: 1986
     life_expectancy: 92
     cpp_start_age: 65
+    cpp_benefit_percentage: 1.0 # Share of the maximum CPP benefit (required).
     oas_start_age: 65
 
 # Investment and registered accounts.
@@ -31,6 +33,7 @@ accounts:
     type: RRSP
     balance: 85000
     cost_basis: 85000
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.65
       fixed_income: 0.30
@@ -42,6 +45,7 @@ accounts:
     type: TFSA
     balance: 42000
     cost_basis: 42000
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.70
       fixed_income: 0.25
@@ -53,6 +57,7 @@ accounts:
     type: RRSP
     balance: 76000
     cost_basis: 76000
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.60
       fixed_income: 0.35
@@ -64,6 +69,7 @@ accounts:
     type: TFSA
     balance: 38000
     cost_basis: 38000
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.65
       fixed_income: 0.30
@@ -75,6 +81,7 @@ accounts:
     type: NON_REGISTERED
     balance: 30000
     cost_basis: 30000
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.50
       fixed_income: 0.40

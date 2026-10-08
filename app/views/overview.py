@@ -6,11 +6,13 @@ from finplanning_core.services import PlanningService
 
 from ..charts.gap_analysis import render_gap_chart
 from ..components.summary_metrics import render_summary_metrics
+from .monte_carlo import render_lines
 
 
 def render_overview(projection: ProjectionResult, service: PlanningService) -> None:
     """Render the overview section with summary metrics, gap analysis chart and estate summary."""
-    st.header(f"Overview: {service.plan.household.name}")
+    plan = service.manager.get_plan(projection.scenario_id)
+    st.header(f"Overview: {plan.household.name}")
     render_summary_metrics(projection)
     if projection.final_real_asset_value > 0:
         st.caption(
@@ -18,8 +20,11 @@ def render_overview(projection: ProjectionResult, service: PlanningService) -> N
             f"${projection.final_real_asset_value:,.0f} for a household total of "
             f"${projection.final_total_household_asset_value:,.0f}."
         )
+    with st.expander("Market profile and assumptions"):
+        render_lines("Material assumptions", plan.material_assumptions())
+        render_lines("Defaulted inputs", projection.defaulted_inputs)
     st.divider()
-    render_gap_chart(projection.desired_spending, projection.sustainable_spending)
+    render_gap_chart(projection)
     st.divider()
     _render_estate_summary(projection, service)
 
@@ -50,6 +55,10 @@ def _render_estate_summary(projection: ProjectionResult, service: PlanningServic
         "After-Tax Estate",
         f"${estate.after_tax_nominal:,.0f}",
         help=f"${estate.after_tax_real:,.0f} in {estate.valuation_year} dollars.",
+    )
+    st.caption(
+        f"Estate values are nominal at {estate.death_year}; the after-tax estate is "
+        f"${estate.after_tax_real:,.0f} in {estate.valuation_year} dollars."
     )
 
     for yr in projection.years:

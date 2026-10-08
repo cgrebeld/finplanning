@@ -127,6 +127,6 @@ def test_no_oas_clawback_column_without_clawback() -> None:
 
     from app.formatters import projection_to_dataframe
 
-    service = PlanningService.from_yaml("examples/sample-plan.yaml")
+    service = PlanningService.from_yaml("examples/canada-typical-40-couple.yaml")
     projection = service.run_projection(scenario_id="base")
     assert "OAS Clawback" not in projection_to_dataframe(projection, service.plan).columns

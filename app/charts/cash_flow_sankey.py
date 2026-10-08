@@ -3,10 +3,8 @@
 
 import plotly.graph_objects as go
 import streamlit as st
-from finplanning_core.engine import inflate
-from finplanning_core.engine import ProjectionResult, YearlyProjection
-from finplanning_core.models import AccountType
-from finplanning_core.models import HouseholdPlan
+from finplanning_core.engine import ProjectionResult, YearlyProjection, inflate
+from finplanning_core.models import AccountType, HouseholdPlan
 from finplanning_core.tax import TaxCalculator
 
 SOURCE_ORDER = [
@@ -24,6 +22,7 @@ SOURCE_ORDER = [
     "TFSA Withdrawals",
     "Estate Settlement Draw",
     "Real Asset Sale",
+    "Cash Savings Draw",
     "Unfunded Shortfall",
     "Balance Adjustment",
 ]
@@ -33,6 +32,7 @@ DESTINATION_ORDER = [
     "Capital Gains Tax",
     "Estate Settlement Tax",
     "OAS Clawback",
+    "Payroll Deductions",
     "Estate Costs",
     "Expenses",
     "Real Asset Purchase",
@@ -40,6 +40,7 @@ DESTINATION_ORDER = [
     "RRSP/RRIF Contributions",
     "TFSA Contributions",
     "Non-Registered Contributions",
+    "Cash Savings",
     "Unallocated Cash",
 ]
 
@@ -84,14 +85,17 @@ def _account_group(account_type: AccountType | None) -> str:
 def _gross_deposits_by_group(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
     """Gross money deposited into each account group this year.
 
-    ``account_net_deposits`` is net of withdrawals and estate draws from the same accounts, so add
-    those back: gross deposits = net deposits + withdrawals + estate settlement outflows.
+    ``account_net_deposits`` is net of withdrawals, estate draws and the non-registered distributions
+    paid out as cash, so add those back: gross deposits = net deposits + withdrawals + estate
+    settlement outflows (+ distributions for non-registered accounts).
     """
     account_types = {account.id: account.account_type for account in plan.accounts} | dict(yearly.account_types)
     gross = {
         "RRSP/RRIF": yearly.withdrawal_rrsp_rrif,
         "TFSA": yearly.withdrawal_tfsa,
-        "Non-Registered": yearly.withdrawal_non_reg,
+        "Non-Registered": yearly.withdrawal_non_reg
+        + yearly.portfolio_dividend_income
+        + yearly.portfolio_interest_income,
     }
     for per_account in (yearly.account_net_deposits, yearly.account_estate_settlement_outflows):
         for account_id, amount in per_account.items():
@@ -190,8 +194,11 @@ def build_cash_flow_sankey_figure(
 ) -> go.Figure:
     """Build Sankey figure for a selected projection year."""
     yearly = _find_yearly_projection(projection, selected_year)
+    prior = next((y for y in projection.years if y.year == selected_year - 1), None)
+    # Surplus the engine holds outside the accounts (e.g. beyond contribution room).
+    cash_change = yearly.external_cash_balance - (prior.external_cash_balance if prior is not None else 0.0)
     person1_name = plan.household.person1.name.split()[0]
-    year_context = f"{person1_name} is {yearly.person1_age}: {selected_year}"
+    year_context = f"{person1_name} is {yearly.person1_age}: {selected_year} (nominal dollars)"
 
     source_amounts: dict[str, float] = {
         "Employment Income": yearly.employment_income,
@@ -208,6 +215,7 @@ def build_cash_flow_sankey_figure(
         "TFSA Withdrawals": yearly.withdrawal_tfsa,
         "Estate Settlement Draw": sum(yearly.account_estate_settlement_outflows.values(), 0.0),
         "Real Asset Sale": yearly.real_asset_sale_proceeds,
+        "Cash Savings Draw": max(-cash_change, 0.0),
         # Spending the plan could not fund: the only legitimate balancing source.
         "Unfunded Shortfall": max(-yearly.cash_flow_gap, 0.0),
     }
@@ -219,12 +227,14 @@ def build_cash_flow_sankey_figure(
     destination_amounts["Expenses"] = max(regular_expenses, 0.0)
     destination_amounts.update(event_expense_destinations)
     destination_amounts["OAS Clawback"] = yearly.oas_clawback
+    destination_amounts["Payroll Deductions"] = yearly.payroll_deductions
     destination_amounts["Estate Costs"] = yearly.estate_total_costs
     destination_amounts["Real Asset Purchase"] = (
         sum(yearly.real_asset_purchase_prices.values(), 0.0) + yearly.real_asset_purchase_costs
     )
     destination_amounts["Real Asset Selling Costs"] = yearly.real_asset_selling_costs
     destination_amounts.update(_gross_deposits_by_group(yearly, plan))
+    destination_amounts["Cash Savings"] = max(cash_change, 0.0)
     destination_amounts = {
         name: value for name, value in destination_amounts.items() if _meets_display_threshold(value)
     }

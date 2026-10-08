@@ -16,19 +16,25 @@ persons:
     id: john
     # Full display name.
     name: "John Smith"
-    # Birth year (YYYY).
+    # Birth date (YYYY-MM-DD), or a year alone meaning July 1.
     birth_date: 1970
     # Assumed age at death for projection horizon.
     life_expectancy: 95
+    # Optional sex used to derive a horizon when life_expectancy is omitted.
+    mortality_sex: MALE
     # Age CPP starts.
     cpp_start_age: 65
+    # Share of the maximum age-65 CPP benefit from the person's Service Canada estimate.
+    cpp_benefit_percentage: 1.0
     # Age OAS starts.
     oas_start_age: 65
 
   - id: jane # Unique person identifier.
     name: "Jane Smith" # Full display name.
-    birth_date: 1972 # Birth year (YYYY).
+    birth_date: 1972 # Birth year; a year alone means July 1.
+    cpp_benefit_percentage: 1.0 # Share of the maximum CPP benefit (required).
     life_expectancy: 95 # Assumed age at death for projection horizon.
+    mortality_sex: FEMALE # Optional when life_expectancy is explicit; required when it is omitted.
     cpp_start_age: 65 # Age CPP starts.
     oas_start_age: 70 # Age OAS starts.
 
@@ -46,6 +52,8 @@ accounts:
     balance: 450000
     # Tax cost basis (used mainly for non-registered accounts).
     cost_basis: 300000
+    # Annual fee or MER as a fraction of the balance (required; 0 allowed).
+    annual_fee_rate: 0.0
     # Target allocation used for return modeling.
     asset_mix:
       # Equity allocation ratio.
@@ -61,6 +69,7 @@ accounts:
     type: TFSA # Account type enum.
     balance: 95000 # Current account market value.
     cost_basis: 45000 # Tax cost basis.
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.80 # Equity allocation ratio.
       fixed_income: 0.20 # Fixed-income allocation ratio.
@@ -71,6 +80,7 @@ accounts:
     type: RRSP # Account type enum.
     balance: 280000 # Current account market value.
     cost_basis: 190000 # Tax cost basis.
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
     asset_mix:
       equity: 0.50 # Equity allocation ratio.
       fixed_income: 0.50 # Fixed-income allocation ratio.
@@ -81,9 +91,27 @@ accounts:
     type: NON_REGISTERED # Taxable account type.
     balance: 150000 # Current account market value.
     cost_basis: 85000 # Tax cost basis for capital gains calculations.
+    annual_fee_rate: 0.0 # Annual fee or MER (required; 0 allowed).
+    equity_regions: {CANADA: 1.0} # Canadian-only equity; other accounts use the plan's world weights.
     asset_mix:
       equity: 0.70 # Equity allocation ratio.
       fixed_income: 0.30 # Fixed-income allocation ratio.
+
+# Separately modelled personal residences (not liquid spending capital).
+real_assets:
+  - id: home
+    name: "Primary Residence"
+    type: PRIMARY_RESIDENCE
+    ownership_shares: {john: 0.5, jane: 0.5}
+    fair_market_value: 1500000
+    valuation_year: 2025
+    appreciation:
+      method: FIXED_NOMINAL
+      annual_rate: 0.03 # Deterministic appreciation; also the Monte Carlo mean.
+      # Monte Carlo price risk: an illustrative Victoria, BC profile, not a model of every Canadian market.
+      monte_carlo: {method: MARKET_PROFILE, profile: VICTORIA_BC_NHPI_V2}
+    # Annual maintenance and insurance; property tax remains an explicit expense.
+    annual_carrying_cost_rate: 0.01
 
 # Ongoing income sources.
 income:
@@ -101,6 +129,8 @@ income:
     start_date: 2020
     # Last year income is active (controls when employment income stops).
     end_date: 2032
+    # annual_pension_adjustment is omitted (0): set it from the T4 box 52 amount if the
+    # employer has a registered pension plan. Jane's future DB pension does not imply one.
 
   - id: jane-salary # Unique income item identifier.
     owner: jane # Owner person ID.
@@ -117,6 +147,7 @@ income:
     annual_amount: 35000 # Gross annual amount in nominal dollars (actual cash in first payment year).
     start_date: 2032 # First active year.
     is_eligible_for_splitting: true # Whether pension income splitting can apply.
+    # indexed is omitted, so this pension is not indexed (the PENSION default; listed in defaulted_inputs).
 
 # Ongoing expense items.
 expenses:
@@ -156,8 +187,11 @@ one_time_events:
   - id: rental-sale # Unique one-time event identifier.
     name: "Sell Rental Property" # Display label.
     type: income # Event type.
-    amount: 800000 # Event amount in dollars.
+    amount: 800000 # Event amount in today's dollars; inflated to the event year.
     year: 2030 # Calendar year event occurs.
+    tax_treatment: CAPITAL_GAIN # ORDINARY, CAPITAL_GAIN or NON_TAXABLE (required for income).
+    owner: joint # Person id or joint (required for income).
+    cost_basis: 500000 # Adjusted cost base in nominal dollars (CAPITAL_GAIN only).
 
 # Repeating expense events (every N years).
 recurring_expenses:
@@ -181,13 +215,19 @@ recurring_expenses:
 
 # Modeling assumptions used across the projection.
 assumptions:
+  # Market history and default equity exposure. GLOBAL_CAD_2026_09 (the default) uses CAD returns for
+  # Canada, US, developed ex-North-America and emerging equity, weighted by MSCI ACWI (2026-09-30).
+  portfolio: {profile: GLOBAL_CAD_2026_09}
   # Expected nominal returns by asset class.
   returns:
-    equity: 0.06 # Annual equity return assumption.
-    fixed_income: 0.03 # Annual fixed income return assumption.
-    cash: 0.02 # Annual cash return assumption.
-  # Single inflation rate (healthcare gets +0.02 premium automatically).
-  inflation: 0.02
+    # Equity returns default to the 2026 FP Canada regional guidelines (Canada 6.3%, US 6.4%,
+    # international developed 6.6%, emerging 7.5%); state e.g. canada_equity: 0.06 to override one region.
+    fixed_income: 0.032 # 2026 FP Canada fixed-income return guideline.
+    cash: 0.024 # 2026 FP Canada short-term return guideline.
+  # General CPI assumption (salary gets +0.01 and healthcare +0.02 automatically).
+  # Flat real ESSENTIAL/DISCRETIONARY spending (the default). Set spending_decline: true for the
+  # opt-in Blanchett (2014) retirement spending curve; category inflation applies either way.
+  inflation: {inflation: 0.021, spending_decline: false}
   # Withdrawal waterfall order for covering spending gaps.
   withdrawal_order:
     - NON_REGISTERED # Then taxable non-registered withdrawals.
@@ -196,10 +236,9 @@ assumptions:
   # Simplified portfolio-income assumptions used to estimate taxable investment income.
   investment_income_model:
     equity_dividend_yield: 0.02 # Estimated dividend yield on equity allocation.
-    fixed_income_distribution_yield: 0.035 # Estimated interest/distribution yield on fixed income.
-    cash_interest_yield: 0.02 # Estimated taxable interest yield on cash allocation.
     capital_gains_inclusion_rate: 0.5 # Taxable fraction of realized capital gains in non-reg withdrawals.
   # Registered account contribution room assumptions.
+  # RRSP room should match each person's latest CRA notice of assessment.
   contribution_limits:
     rrsp_contribution_room_by_owner:
       john: 125000 # Current RRSP room for John.
@@ -228,15 +267,16 @@ scenarios:
     is_base_case: true
 
   - id: early-retire # Scenario identifier.
-    name: "Retire at 58" # Display name.
+    name: "Retire together after 2028" # John is 58 and Jane 56 at the end of 2028.
     is_base_case: false # Non-base scenario.
 
 # Per-scenario override payloads keyed by scenario ID.
 scenario_overrides:
+  # Only the salary end years change; an end year includes that full year. Jane's pension
+  # still starts in 2032, so 2029-2031 has no employment or pension income.
   early-retire:
-    assumptions:
-      returns:
-        equity_return: 0.05 # Override for scenario-specific equity return assumption.
-    expenses:
-      - id: essential # Expense ID to override.
-        annual_amount: 95000 # Scenario-specific replacement value.
+    income:
+      - id: john-salary # Income ID to override.
+        end_date: 2028 # Last salary year (year only).
+      - id: jane-salary
+        end_date: 2028

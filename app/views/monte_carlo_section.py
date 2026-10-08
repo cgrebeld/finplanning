@@ -22,9 +22,9 @@ def render_monte_carlo_section() -> None:
     st.header(
         "Monte Carlo Simulation",
         help=(
-            "Runs up to 2,000 projections using randomised investment returns to stress-test your plan. "
-            "Results show the probability of depleting your portfolio, median outcomes, and the range of "
-            "possible net worth paths across percentile bands."
+            "Runs up to 2,000 projections with randomised investment returns, inflation, housing prices and "
+            "lifespans to stress-test your plan. Results show the probability of depleting your investment "
+            "accounts, median outcomes, and the range of liquid net worth paths in start-year dollars."
         ),
     )
 
@@ -37,20 +37,21 @@ def render_monte_carlo_section() -> None:
             "but take longer. Choose 500 for quick tests, 1,000 for standard analysis, or 2,000 for more precision."
         ),
     )
+    profile = service.plan.market_profile if service is not None else None
+    history = profile.description if profile is not None else "the plan's market profile history"
     mc_lbl3.markdown(
         "**Method** :grey_question:",
         help=(
             "**historical**\n"
-            "- 5-year block bootstrap from US returns 1928-2024\n"
-            "- Resamples equity, fixed income & cash together\n"
-            "- Preserves cross-asset correlation & autocorrelation\n"
-            "- Includes real crashes (1931, 2008, etc.)\n\n"
+            f"- 5-year block bootstrap of {history}\n"
+            "- Each sampled year keeps every asset class and inflation together, preserving correlations\n"
+            "- Recentred on the plan's return assumptions: history supplies volatility, not return levels\n\n"
             "**parametric**\n"
-            "- Fat-tailed Student's t-distribution (df=5)\n"
-            "- Randomises equity only; fixed income & cash use plan defaults\n"
-            "- Scaled to plan's mean/std assumptions\n\n"
-            "One-time events and recurring expenses are applied in every iteration. "
-            "Custom black swan shocks are not applied — return paths already capture extremes."
+            "- Multivariate Student's t draws for every asset class and inflation, with the history's "
+            "volatilities and correlations\n"
+            "- Centred on the plan's return assumptions\n\n"
+            "Fees are deducted once, in each account. One-time events and recurring expenses apply in every "
+            "path; the deterministic black-swan shock does not."
         ),
     )
     mc_lbl4.markdown(
@@ -75,10 +76,7 @@ def render_monte_carlo_section() -> None:
             options=MC_RETURN_METHODS,
             index=0,
             label_visibility="collapsed",
-            help=(
-                "historical: 5-year block bootstrap from US returns 1928-2024 (equity, fixed income, cash). "
-                "parametric: equity-only fat-tailed t-distribution (df=5) using plan assumptions."
-            ),
+            help=f"historical: 5-year block bootstrap of {history}. parametric: multivariate t across all classes.",
         )
         if mc_return_method not in MC_RETURN_METHODS:
             st.session_state["error"] = f"Unsupported Monte Carlo return method: {mc_return_method!r}"
@@ -123,5 +121,5 @@ def render_monte_carlo_section() -> None:
             )
         else:
             st.caption(describe_run_params(mc_params))
-    if mc_result is not None and mc_params is not None and service is not None:
-        render_monte_carlo_view(mc_result, service.manager.get_plan(mc_params[0]))
+    if mc_result is not None and service is not None:
+        render_monte_carlo_view(mc_result, service.manager.get_plan(mc_result.scenario_id))

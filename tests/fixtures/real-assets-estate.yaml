@@ -1,15 +1,15 @@
 schema_version: 1
 household: {id: hh-test, name: "Real assets, OAS clawback and estate settlement fixture", province: BC}
 persons:
-  - {id: alex, name: Alex, birth_date: 1958, life_expectancy: 80, cpp_start_age: 65, oas_start_age: 65}
-  - {id: sam, name: Sam, birth_date: 1960, life_expectancy: 88, cpp_start_age: 65, oas_start_age: 65}
+  - {id: alex, name: Alex, birth_date: 1958, life_expectancy: 80, cpp_start_age: 65, cpp_benefit_percentage: 1.0, oas_start_age: 65}
+  - {id: sam, name: Sam, birth_date: 1960, life_expectancy: 88, cpp_start_age: 65, cpp_benefit_percentage: 1.0, oas_start_age: 65}
 accounts:
-  - {id: alex-rrsp, owner: alex, rollover_to_spouse: false, name: Alex RRIF, type: RRSP, balance: 900000, cost_basis: 900000, asset_mix: {equity: 0.6, fixed_income: 0.4}}
-  - {id: alex-tfsa, owner: alex, rollover_to_spouse: false, name: Alex TFSA, type: TFSA, balance: 150000, cost_basis: 100000, asset_mix: {equity: 0.8, fixed_income: 0.2}}
-  - {id: sam-rrsp, owner: sam, name: Sam RRIF, type: RRSP, balance: 700000, cost_basis: 700000, asset_mix: {equity: 0.6, fixed_income: 0.4}}
-  - {id: sam-tfsa, owner: sam, name: Sam TFSA, type: TFSA, balance: 150000, cost_basis: 100000, asset_mix: {equity: 0.8, fixed_income: 0.2}}
-  - {id: alex-nonreg, owner: alex, rollover_to_spouse: false, name: Alex NR, type: NON_REGISTERED, balance: 600000, cost_basis: 400000, asset_mix: {equity: 0.7, fixed_income: 0.3}}
-  - {id: joint-nonreg, owner: joint, name: Joint NR, type: NON_REGISTERED, balance: 1500000, cost_basis: 900000, asset_mix: {equity: 0.7, fixed_income: 0.3}}
+  - {id: alex-rrsp, owner: alex, rollover_to_spouse: false, name: Alex RRIF, type: RRSP, balance: 900000, cost_basis: 900000, annual_fee_rate: 0.0, asset_mix: {equity: 0.6, fixed_income: 0.4}}
+  - {id: alex-tfsa, owner: alex, rollover_to_spouse: false, name: Alex TFSA, type: TFSA, balance: 150000, cost_basis: 100000, annual_fee_rate: 0.0, asset_mix: {equity: 0.8, fixed_income: 0.2}}
+  - {id: sam-rrsp, owner: sam, name: Sam RRIF, type: RRSP, balance: 700000, cost_basis: 700000, annual_fee_rate: 0.0, asset_mix: {equity: 0.6, fixed_income: 0.4}}
+  - {id: sam-tfsa, owner: sam, name: Sam TFSA, type: TFSA, balance: 150000, cost_basis: 100000, annual_fee_rate: 0.0, asset_mix: {equity: 0.8, fixed_income: 0.2}}
+  - {id: alex-nonreg, owner: alex, rollover_to_spouse: false, name: Alex NR, type: NON_REGISTERED, balance: 600000, cost_basis: 400000, annual_fee_rate: 0.0, asset_mix: {equity: 0.7, fixed_income: 0.3}}
+  - {id: joint-nonreg, owner: joint, name: Joint NR, type: NON_REGISTERED, balance: 1500000, cost_basis: 900000, annual_fee_rate: 0.0, asset_mix: {equity: 0.7, fixed_income: 0.3}}
 real_assets:
   - id: home
     name: Home
@@ -49,7 +49,7 @@ expenses:
   - {id: essential, name: Essential, category: ESSENTIAL, annual_amount: 120000}
   - {id: travel, name: Travel, category: DISCRETIONARY, annual_amount: 40000}
 one_time_events:
-  - {id: gift, name: Inheritance, type: income, amount: 100000, year: 2030}
+  - {id: gift, name: Inheritance, type: income, amount: 100000, year: 2030, tax_treatment: NON_TAXABLE, owner: alex}
   - {id: car, name: Car, type: expense, amount: 60000, year: 2031}
 recurring_expenses:
   - {id: reno, name: Reno, amount: 20000, start_year: 2027, period_years: 5}

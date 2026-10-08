@@ -140,7 +140,7 @@ def build_net_worth_figure(
 
     fig.update_layout(
         xaxis_title=f"{person1_name} Age",
-        yaxis_title="Balance ($)",
+        yaxis_title="Balance (nominal $)",
         yaxis_tickprefix="$",
         yaxis_tickformat=",.0f",
         xaxis_dtick=5,
