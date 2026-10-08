@@ -26,6 +26,9 @@ This project has a local Graphify knowledge graph in `graphify-out/`.
 - Keep commits focused: stage only the files you changed for that chunk, and
   never sweep in unrelated untracked files.
 - Never commit directly on `main`; branch first if needed.
+- The remote tracks only `main`. Before pushing, merge the finished branch back
+  into `main` locally, then push `main`. Never push feature branches, and delete
+  the merged local branch afterwards.
 
 ## Subagent Model Policy
 
