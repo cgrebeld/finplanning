@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Core version tag (e.g. v0.1.0). Leave blank for latest."
+        description: "Core version tag (e.g. v0.1.0). Leave blank for latest. An explicit version may downgrade."
         required: false
 
 jobs:
@@ -34,7 +34,21 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "wheel_version=$WHEEL_VERSION" >> "$GITHUB_OUTPUT"
 
+          # Only move forward unless a version was requested explicitly: re-pushing an old
+          # engine tag re-runs its release and dispatches that old version here.
+          CURRENT=$(sed -nE 's#^\./wheels/finplanning_core-([^-]+)-.*\.whl$#\1#p' requirements.txt)
+          SKIP=false
+          if [ -z "$INPUT_VERSION" ] && [ -n "$CURRENT" ]; then
+            NEWEST=$(printf '%s\n%s\n' "$CURRENT" "$WHEEL_VERSION" | sort -V | tail -1)
+            if [ "$WHEEL_VERSION" = "$CURRENT" ] || [ "$NEWEST" != "$WHEEL_VERSION" ]; then
+              echo "::notice::Ignoring core ${VERSION}: not newer than the pinned ${CURRENT}."
+              SKIP=true
+            fi
+          fi
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
       - name: Resolve Linux x86_64 core wheel asset
+        if: steps.version.outputs.skip != 'true'
         id: wheel
         env:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
@@ -51,6 +65,7 @@ jobs:
           echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Download core wheel into repository
+        if: steps.version.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.CORE_REPO_TOKEN }}
         run: |
@@ -64,14 +79,17 @@ jobs:
             --dir wheels/
 
       - name: Initialize Git LFS
+        if: steps.version.outputs.skip != 'true'
         run: git lfs install --local
 
       - name: Update requirements.txt
+        if: steps.version.outputs.skip != 'true'
         run: |
           WHEEL_NAME="${{ steps.wheel.outputs.wheel_name }}"
           sed -E -i -e 's#^(finplanning-core @ .*|\./wheels/finplanning_core-.*\.whl)$#./wheels/'"$WHEEL_NAME"'#' requirements.txt
 
       - name: Commit and tag
+        if: steps.version.outputs.skip != 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           TAG_NAME="${VERSION}"
