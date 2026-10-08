@@ -1,0 +1,220 @@
+# Schema version for this plan file format.
+schema_version: 1
+
+# Household-level metadata.
+household:
+  id: hh-canada-typical-40
+  name: "Typical Canadian Household (Age 40 Couple)"
+  province: BC
+
+# People in the household. IDs are referenced by accounts/income items.
+persons:
+  - id: alex
+    name: "Alex Martin"
+    birth_date: 1986
+    life_expectancy: 92
+    cpp_start_age: 65
+    oas_start_age: 65
+
+  - id: taylor
+    name: "Taylor Martin"
+    birth_date: 1986
+    life_expectancy: 92
+    cpp_start_age: 65
+    oas_start_age: 65
+
+# Investment and registered accounts.
+accounts:
+  - id: alex-rrsp
+    owner: alex
+    name: "Alex RRSP"
+    type: RRSP
+    balance: 85000
+    cost_basis: 85000
+    asset_mix:
+      equity: 0.65
+      fixed_income: 0.30
+      cash: 0.05
+
+  - id: alex-tfsa
+    owner: alex
+    name: "Alex TFSA"
+    type: TFSA
+    balance: 42000
+    cost_basis: 42000
+    asset_mix:
+      equity: 0.70
+      fixed_income: 0.25
+      cash: 0.05
+
+  - id: taylor-rrsp
+    owner: taylor
+    name: "Taylor RRSP"
+    type: RRSP
+    balance: 76000
+    cost_basis: 76000
+    asset_mix:
+      equity: 0.60
+      fixed_income: 0.35
+      cash: 0.05
+
+  - id: taylor-tfsa
+    owner: taylor
+    name: "Taylor TFSA"
+    type: TFSA
+    balance: 38000
+    cost_basis: 38000
+    asset_mix:
+      equity: 0.65
+      fixed_income: 0.30
+      cash: 0.05
+
+  - id: joint-nonreg
+    owner: joint
+    name: "Joint Non-Registered Savings"
+    type: NON_REGISTERED
+    balance: 30000
+    cost_basis: 30000
+    asset_mix:
+      equity: 0.50
+      fixed_income: 0.40
+      cash: 0.10
+
+# Ongoing income sources.
+income:
+  - id: alex-salary
+    owner: alex
+    name: "Alex Employment Income"
+    type: EMPLOYMENT
+    annual_amount: 68000
+    start_date: 2020
+    end_date: 2051
+
+  - id: taylor-salary
+    owner: taylor
+    name: "Taylor Employment Income"
+    type: EMPLOYMENT
+    annual_amount: 62000
+    start_date: 2020
+    end_date: 2051
+
+# Ongoing expense items.
+expenses:
+  - id: living-core
+    name: "Core Living Costs"
+    category: ESSENTIAL
+    annual_amount: 52000
+
+  - id: mortgage
+    name: "Mortgage Payments"
+    category: ESSENTIAL
+    annual_amount: 28000
+    end_date: 2048
+
+  - id: child-costs
+    name: "Childcare and Activities"
+    category: DISCRETIONARY
+    annual_amount: 9000
+    end_date: 2032
+
+  - id: resp-contrib
+    name: "RESP Contributions"
+    category: DISCRETIONARY
+    annual_amount: 5000
+    end_date: 2037
+
+  - id: healthcare
+    name: "Healthcare and Insurance"
+    category: HEALTHCARE
+    annual_amount: 5000
+
+  - id: travel
+    name: "Travel and Leisure"
+    category: DISCRETIONARY
+    annual_amount: 7000
+
+# One-off events that occur in a specific year.
+one_time_events:
+  - id: mortgage-payoff
+    name: "Final Mortgage Payoff"
+    type: expense
+    amount: 25000
+    year: 2048
+
+# Repeating expense events (every N years).
+recurring_expenses:
+  - id: child1-postsecondary
+    name: "Child 1 Postsecondary (4 years)"
+    amount: 17000
+    start_year: 2034
+    period_years: 1
+    end_year: 2037
+
+  - id: child2-postsecondary
+    name: "Child 2 Postsecondary (4 years)"
+    amount: 17500
+    start_year: 2037
+    period_years: 1
+    end_year: 2040
+
+  - id: vehicle-replacement
+    name: "Vehicle Replacement"
+    amount: 26000
+    start_year: 2029
+    period_years: 8
+
+  - id: home-maintenance
+    name: "Major Home Maintenance"
+    amount: 12000
+    start_year: 2030
+    period_years: 10
+
+# Modeling assumptions used across the projection.
+assumptions:
+  returns:
+    equity: 0.055
+    fixed_income: 0.03
+    cash: 0.02
+  inflation: 0.02
+  withdrawal_order:
+    - NON_REGISTERED
+    - RRSP
+    - TFSA
+  investment_income_model:
+    equity_dividend_yield: 0.02
+    fixed_income_distribution_yield: 0.035
+    cash_interest_yield: 0.02
+    capital_gains_inclusion_rate: 0.5
+  contribution_limits:
+    rrsp_contribution_room_by_owner:
+      alex: 35000
+      taylor: 32000
+  glide_path:
+    equity_by_age:
+      55: 0.65
+      65: 0.55
+      75: 0.45
+      85: 0.35
+      95: 0.25
+
+# Scenario list (one base case).
+scenarios:
+  - id: base
+    name: "Base Case"
+    is_base_case: true
+
+# Per-scenario override payloads keyed by scenario ID.
+scenario_overrides: {}
+
+# The scenario was built as a stats-anchored, not fully calibrated “typical household” profile.
+# Main anchors I used:
+# Household income level: StatsCan reports median after-tax income of $126,700 for couples with children (2023), which set the target scale for dual-income earners.
+# Income of Canadians, 2023 (StatsCan)
+# Age-40 wealth stage: For ages 35–44, StatsCan shows median net worth of $409,300 (2023), which informed a mid-accumulation household (some registered savings + mortgage still outstanding).
+# Total and median net worth by age (StatsCan Table 1)
+# Mortgage burden: StatsCan SFS 2023 reports 39% of families hold a mortgage, with median mortgage debt of $205,000; variable-rate holders’ median payment was about $2,020/month (young families higher). That supports the ongoing mortgage expense plus payoff event pattern.
+# Survey of Financial Security, 2023 (StatsCan)
+# Children’s post-secondary costs: StatsCan’s 2025/2026 average undergraduate tuition for Canadian students is $7,734 nationally ($6,862 in BC), and the scenario adds tuition + non-tuition costs into annual education expense blocks.
+# Tuition fees 2025/2026 (StatsCan)
+# RESP savings behavior: Annual RESP contributions were set near the common grant-optimized pattern (about $2,500 per child/year) because CESG is 20% of the first $2,500 per child.
+# RESP/CESG rules (Canada.ca)

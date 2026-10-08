@@ -1,0 +1,6 @@
+./wheels/finplanning_core-0.17.0-cp312-abi3-manylinux_2_28_x86_64.whl
+streamlit>=1.52,<2
+plotly>=5.18,<6
+pandas>=2.1,<3
+streamlit-ace>=0.1.1,<1
+pytest-playwright>=0.5,<1

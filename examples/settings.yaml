@@ -1,0 +1,10 @@
+ui:
+  theme: auto
+  chart_height: 400
+
+monte_carlo:
+  default_iterations: 1000
+
+last_session:
+  data_file: "./my-retirement-plan.yaml"
+  active_scenario: base

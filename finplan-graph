@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GRAPH_FILE="$ROOT_DIR/graphify-out/graph.json"
+
+if [[ -z "${GRAPHIFY_BIN:-}" ]]; then
+  GRAPHIFY_BIN="$(command -v graphify || true)"
+fi
+if [[ -z "$GRAPHIFY_BIN" ]]; then
+  printf '%s\n' "graphify is not installed; install graphifyy with its MCP extra." >&2
+  exit 127
+fi
+
+cd "$ROOT_DIR"
+
+usage() {
+  cat <<'EOF'
+Usage: ./finplan-graph <command> [arguments]
+
+Commands:
+  build [flags]              Build a local AST graph
+  update [flags]             Update an existing graph
+  watch [flags]              Rebuild as code changes
+  query "<question>"         Query a scoped subgraph
+  path "<source>" "<target>" Trace a relationship
+  explain "<concept>"        Explain one graph node
+  affected "<concept>"       Find reverse dependencies
+  god-nodes [flags]          Show architectural hubs
+  benchmark [flags]          Compare graph and corpus context size
+  serve [flags]              Serve the graph over MCP
+  hooks [status|install|uninstall]
+  status                     Show graph and hook status
+EOF
+}
+
+require_graph() {
+  if [[ ! -f "$GRAPH_FILE" ]]; then
+    printf 'Graph not found at %s; run ./finplan-graph build first.\n' "$GRAPH_FILE" >&2
+    exit 2
+  fi
+}
+
+require_args() {
+  local minimum="$1"
+  shift
+  if (( $# < minimum )); then
+    usage >&2
+    exit 2
+  fi
+}
+
+command="${1:-help}"
+if (( $# > 0 )); then
+  shift
+fi
+
+case "$command" in
+  build)
+    build_args=(--code-only)
+    if [[ -f "$ROOT_DIR/Cargo.toml" ]]; then
+      build_args+=(--cargo)
+    fi
+    "$GRAPHIFY_BIN" extract "$ROOT_DIR" "${build_args[@]}" "$@"
+    exec "$GRAPHIFY_BIN" cluster-only "$ROOT_DIR" --no-label
+    ;;
+  update)
+    require_graph
+    exec "$GRAPHIFY_BIN" update "$ROOT_DIR" "$@"
+    ;;
+  watch)
+    exec "$GRAPHIFY_BIN" watch "$ROOT_DIR" "$@"
+    ;;
+  query)
+    require_graph
+    require_args 1 "$@"
+    exec "$GRAPHIFY_BIN" query "$@" --graph "$GRAPH_FILE"
+    ;;
+  path)
+    require_graph
+    require_args 2 "$@"
+    exec "$GRAPHIFY_BIN" path "$@" --graph "$GRAPH_FILE"
+    ;;
+  explain)
+    require_graph
+    require_args 1 "$@"
+    exec "$GRAPHIFY_BIN" explain "$@" --graph "$GRAPH_FILE"
+    ;;
+  affected)
+    require_graph
+    require_args 1 "$@"
+    exec "$GRAPHIFY_BIN" affected "$@" --graph "$GRAPH_FILE"
+    ;;
+  god-nodes)
+    require_graph
+    exec "$GRAPHIFY_BIN" god-nodes "$@" --graph "$GRAPH_FILE"
+    ;;
+  benchmark)
+    require_graph
+    exec "$GRAPHIFY_BIN" benchmark "$GRAPH_FILE" "$@"
+    ;;
+  serve)
+    require_graph
+    mcp_bin="$(command -v graphify-mcp || true)"
+    if [[ -z "$mcp_bin" ]]; then
+      printf '%s\n' "graphify-mcp is not installed; install graphifyy with its MCP extra." >&2
+      exit 127
+    fi
+    exec "$mcp_bin" "$GRAPH_FILE" "$@"
+    ;;
+  hooks)
+    hook_action="${1:-status}"
+    case "$hook_action" in
+      status|install|uninstall)
+        exec "$GRAPHIFY_BIN" hook "$hook_action"
+        ;;
+      *)
+        usage >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  status)
+    if [[ -f "$GRAPH_FILE" ]]; then
+      printf 'graph: ready (%s)\n' "$GRAPH_FILE"
+    else
+      printf 'graph: missing (%s)\n' "$GRAPH_FILE"
+    fi
+    "$GRAPHIFY_BIN" hook status
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
