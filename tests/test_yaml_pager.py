@@ -18,13 +18,7 @@ def test_single_scalar_key():
 
 
 def test_list_key_with_named_children():
-    yaml = (
-        "accounts:\n"
-        "  - id: acc1\n"
-        "    name: Savings Account\n"
-        "  - id: acc2\n"
-        "    name: Investment Account\n"
-    )
+    yaml = "accounts:\n  - id: acc1\n    name: Savings Account\n  - id: acc2\n    name: Investment Account\n"
     result = _parse_yaml_outline(yaml)
     assert len(result) == 1
     key, line, children = result[0]
@@ -36,49 +30,28 @@ def test_list_key_with_named_children():
 
 
 def test_list_items_without_name_are_excluded():
-    yaml = (
-        "withdrawal_order:\n"
-        "  - NON_REGISTERED\n"
-        "  - RRSP\n"
-        "  - TFSA\n"
-    )
+    yaml = "withdrawal_order:\n  - NON_REGISTERED\n  - RRSP\n  - TFSA\n"
     result = _parse_yaml_outline(yaml)
     key, line, children = result[0]
     assert children == []
 
 
 def test_multiple_top_level_keys():
-    yaml = (
-        "schema_version: 1\n"
-        "household:\n"
-        "  id: hh1\n"
-        "  name: Smith Family\n"
-        "accounts:\n"
-        "  - id: acc1\n"
-        "    name: TFSA\n"
-    )
+    yaml = "schema_version: 1\nhousehold:\n  id: hh1\n  name: Smith Family\naccounts:\n  - id: acc1\n    name: TFSA\n"
     result = _parse_yaml_outline(yaml)
     keys = [r[0] for r in result]
     assert keys == ["schema_version", "household", "accounts"]
 
 
 def test_name_with_double_quoted_value():
-    yaml = (
-        "accounts:\n"
-        '  - id: rrsp\n'
-        '    name: "Questrade RRSP"\n'
-    )
+    yaml = 'accounts:\n  - id: rrsp\n    name: "Questrade RRSP"\n'
     result = _parse_yaml_outline(yaml)
     _, _, children = result[0]
     assert children[0][0] == "Questrade RRSP"
 
 
 def test_name_with_single_quoted_value():
-    yaml = (
-        "scenarios:\n"
-        "  - id: base\n"
-        "    name: 'Base Case'\n"
-    )
+    yaml = "scenarios:\n  - id: base\n    name: 'Base Case'\n"
     result = _parse_yaml_outline(yaml)
     _, _, children = result[0]
     assert children[0][0] == "Base Case"
@@ -95,23 +68,15 @@ def test_line_numbers_are_1_indexed():
 
 
 def test_comment_lines_not_treated_as_keys():
-    yaml = (
-        "# this is a comment\n"
-        "accounts:\n"
-        "  - name: My Account\n"
-    )
+    yaml = "# this is a comment\naccounts:\n  - name: My Account\n"
     result = _parse_yaml_outline(yaml)
     assert len(result) == 1
     assert result[0][0] == "accounts"
 
 
 def test_inline_list_item_with_name_field():
-    """  - name: Foo  (name is right on the dash line)"""
-    yaml = (
-        "scenarios:\n"
-        "  - name: Base Case\n"
-        "    id: base\n"
-    )
+    """- name: Foo  (name is right on the dash line)"""
+    yaml = "scenarios:\n  - name: Base Case\n    id: base\n"
     result = _parse_yaml_outline(yaml)
     _, _, children = result[0]
     assert children[0][0] == "Base Case"

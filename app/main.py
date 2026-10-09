@@ -89,10 +89,7 @@ def _apply_global_styles() -> None:
 def _render_landing_page() -> None:
     """Render the feature-grid welcome screen shown before any plan is loaded."""
     st.title("Financial Planning Helper")
-    st.markdown(
-        "Model your financial future — income, taxes, investments, and spending "
-        "— across any time horizon."
-    )
+    st.markdown("Model your financial future — income, taxes, investments, and spending — across any time horizon.")
     st.markdown("")
 
     features = [
@@ -106,18 +103,16 @@ def _render_landing_page() -> None:
     ]
 
     row1_cols = st.columns(4)
-    for col, (icon, name, desc) in zip(row1_cols, features[:4]):
-        with col:
-            with st.container(border=True):
-                st.markdown(f"**{icon} {name}**")
-                st.caption(desc)
+    for col, (icon, name, desc) in zip(row1_cols, features[:4], strict=True):
+        with col, st.container(border=True):
+            st.markdown(f"**{icon} {name}**")
+            st.caption(desc)
 
     row2_cols = st.columns(4)
-    for col, (icon, name, desc) in zip(row2_cols, features[4:]):
-        with col:
-            with st.container(border=True):
-                st.markdown(f"**{icon} {name}**")
-                st.caption(desc)
+    for col, (icon, name, desc) in zip(row2_cols, features[4:], strict=True):
+        with col, st.container(border=True):
+            st.markdown(f"**{icon} {name}**")
+            st.caption(desc)
 
     st.markdown("")
     st.caption(
@@ -128,14 +123,16 @@ def _render_landing_page() -> None:
     with st.expander("Engine Modeling Features", expanded=False):
         st.markdown(
             """
-            - Multi-person household modeling with age-based timelines, life expectancy, and province-aware tax treatment (BC tax data support today).
+            - Multi-person household modeling with age-based timelines, life expectancy, and
+              province-aware tax treatment (BC tax data support today).
             - Account-level modeling across `RRSP`, `RRIF`, `TFSA`, `NON_REGISTERED`, `LIRA`, and `LIF`.
             - Asset-mix-based return projection for equity, fixed income, cash, and real estate assumptions.
             - Cash-flow projection with recurring income/expenses, one-time events, and recurring periodic expenses.
             - Income modeling for employment, self-employment, pension, rental, CPP, OAS, and other sources.
             - CPP and OAS benefit modeling with configurable start ages and OAS clawback logic.
             - Federal + provincial income tax calculations by year, with future tax table indexation.
-            - Retirement decumulation with configurable withdrawal order (for example, non-registered before registered accounts).
+            - Retirement decumulation with configurable withdrawal order
+              (for example, non-registered before registered accounts).
             - Registered contribution handling for RRSP and TFSA room constraints when annual surplus is available.
             - Pension income splitting optimization (where eligible) to reduce household tax burden.
             - Inflation modeling with category-specific effects and healthcare inflation premium.

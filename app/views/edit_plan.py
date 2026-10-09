@@ -14,8 +14,8 @@ except ImportError:  # pragma: no cover - optional dependency
 
 from ..state import apply_yaml_edits
 
-_TOP_KEY_RE = re.compile(r'^([a-zA-Z_][\w-]*):\s*(?:[^#\n]+?)?\s*(?:#.*)?$')
-_LIST_ITEM_RE = re.compile(r'^  - ')
+_TOP_KEY_RE = re.compile(r"^([a-zA-Z_][\w-]*):\s*(?:[^#\n]+?)?\s*(?:#.*)?$")
+_LIST_ITEM_RE = re.compile(r"^  - ")
 _NAME_4_RE = re.compile(r'^    name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
 _NAME_INLINE_RE = re.compile(r'^  - name:\s*["\']?([^"\'#\n]+?)["\']?\s*(?:#.*)?$')
 _LOGGER = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ def _parse_yaml_outline(
     try:
         for i, raw_line in enumerate(text.splitlines(), start=1):
             line = raw_line.rstrip()
-            if not line or line.lstrip().startswith('#'):
+            if not line or line.lstrip().startswith("#"):
                 continue
 
             top_m = _TOP_KEY_RE.match(line)

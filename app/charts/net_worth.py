@@ -158,11 +158,9 @@ def render_net_worth_chart(projection: ProjectionResult, plan: HouseholdPlan, se
         "Net Worth by Account Type",
         help="Stacked area chart showing projected balances for Non-Registered, RRSP/RRIF, and TFSA "
         "accounts over time, plus the market value of real assets (property) when the plan has any. "
-        "Depletion refers to the investment accounts only. The magenta line marks the currently selected year; click the chart to "
-        "select a different year. Hover to see individual account values at each age.",
+        "Depletion refers to the investment accounts only. The magenta line marks the currently selected year; "
+        "click the chart to select a different year. Hover to see individual account values at each age.",
     )
     fig = build_net_worth_figure(projection, plan, selected_year=selected_year)
-    event = st.plotly_chart(
-        fig, width="stretch", key="net_worth_chart", on_select="rerun", selection_mode="points"
-    )
+    event = st.plotly_chart(fig, width="stretch", key="net_worth_chart", on_select="rerun", selection_mode="points")
     select_year(year_for_selected_age(projection, event.selection.points))

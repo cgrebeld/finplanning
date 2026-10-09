@@ -6,7 +6,6 @@ For visual debugging: .venv/bin/python -m pytest tests/e2e/ -v --headed
 
 import re
 
-import pytest
 from playwright.sync_api import Page, expect
 
 # How long to wait for Streamlit to rerender after an interaction (ms).
@@ -79,9 +78,7 @@ def test_run_projection_navigates_to_overview(page: Page, streamlit_server: str)
     _load_plan(page, streamlit_server)
     _run_projection(page)
 
-    expect(
-        page.get_by_role("heading", name=re.compile(r"Overview")).first
-    ).to_be_visible(timeout=_SLOW_TIMEOUT)
+    expect(page.get_by_role("heading", name=re.compile(r"Overview")).first).to_be_visible(timeout=_SLOW_TIMEOUT)
 
     # At least one summary metric should be visible.
     expect(page.locator('[data-testid="stMetric"]').first).to_be_visible()
@@ -104,9 +101,7 @@ def test_nav_to_net_worth(page: Page, streamlit_server: str) -> None:
     _click_nav(page, "Net Worth")
 
     expect(page.get_by_role("heading", name="Net Worth").first).to_be_visible()
-    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
-        timeout=_SLOW_TIMEOUT
-    )
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(timeout=_SLOW_TIMEOUT)
 
 
 def test_nav_to_tax_analysis(page: Page, streamlit_server: str) -> None:
@@ -116,9 +111,7 @@ def test_nav_to_tax_analysis(page: Page, streamlit_server: str) -> None:
     _click_nav(page, "Tax Analysis")
 
     expect(page.get_by_role("heading", name="Tax Analysis").first).to_be_visible()
-    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
-        timeout=_SLOW_TIMEOUT
-    )
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(timeout=_SLOW_TIMEOUT)
 
 
 def test_nav_to_monte_carlo(page: Page, streamlit_server: str) -> None:
@@ -140,9 +133,7 @@ def test_nav_to_data_export(page: Page, streamlit_server: str) -> None:
     _click_nav(page, "Data & Export")
 
     expect(page.get_by_role("heading", name="Data & Export").first).to_be_visible()
-    expect(page.locator('[data-testid="stDownloadButton"]').first).to_be_visible(
-        timeout=_SLOW_TIMEOUT
-    )
+    expect(page.locator('[data-testid="stDownloadButton"]').first).to_be_visible(timeout=_SLOW_TIMEOUT)
 
 
 def test_no_projection_guard(page: Page, streamlit_server: str) -> None:
@@ -171,9 +162,7 @@ def test_year_slider_persists(page: Page, streamlit_server: str) -> None:
 
     # Navigate to Net Worth — the magenta year-marker line should still be present.
     _click_nav(page, "Net Worth")
-    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(
-        timeout=_SLOW_TIMEOUT
-    )
+    expect(page.locator('[data-testid="stPlotlyChart"]').first).to_be_visible(timeout=_SLOW_TIMEOUT)
 
 
 def test_pager_button_navigates_editor(page: Page, streamlit_server: str) -> None:
@@ -181,14 +170,10 @@ def test_pager_button_navigates_editor(page: Page, streamlit_server: str) -> Non
     from pathlib import Path
 
     # Mirror sidebar sample ordering: sorted *.yaml excluding settings.yaml.
-    default_sample = sorted(
-        p for p in Path("examples").glob("*.yaml") if p.name != "settings.yaml"
-    )[0]
+    default_sample = sorted(p for p in Path("examples").glob("*.yaml") if p.name != "settings.yaml")[0]
     # Determine the 1-indexed line number of 'accounts:' in the default sample.
     sample_lines = default_sample.read_text(encoding="utf-8").splitlines()
-    accounts_line = next(
-        i + 1 for i, ln in enumerate(sample_lines) if ln.startswith("accounts:")
-    )
+    accounts_line = next(i + 1 for i, ln in enumerate(sample_lines) if ln.startswith("accounts:"))
 
     _load_plan(page, streamlit_server)
 

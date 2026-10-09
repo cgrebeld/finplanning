@@ -1,6 +1,5 @@
 """Cash flow Sankey chart for tracing yearly inflows to outflows."""
 
-
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.engine import ProjectionResult, YearlyProjection
