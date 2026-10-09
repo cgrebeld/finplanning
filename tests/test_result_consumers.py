@@ -188,3 +188,11 @@ def test_overview_withholds_capacity_when_infeasible() -> None:
     labels = [metric.label for metric in at.metric]
     assert "Final Liquid Net Worth (2067)" in labels
     assert "Final Household Assets" in labels
+
+
+def test_landing_page_renders_without_a_plan() -> None:
+    at = AppTest.from_string("from app.main import run_app\nrun_app()", default_timeout=60)
+    at.run()
+
+    assert not at.exception
+    assert at.title[0].value == "Financial Planning Helper"
