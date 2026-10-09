@@ -3,9 +3,8 @@
 
 import plotly.graph_objects as go
 import streamlit as st
-from finplanning_core.engine import ProjectionResult, YearlyProjection, inflate
+from finplanning_core.engine import ProjectionResult, YearlyProjection
 from finplanning_core.models import AccountType, HouseholdPlan
-from finplanning_core.tax import TaxCalculator
 
 SOURCE_ORDER = [
     "Employment Income",
@@ -103,85 +102,27 @@ def _gross_deposits_by_group(yearly: YearlyProjection, plan: HouseholdPlan) -> d
     return {f"{group} Contributions": max(amount, 0.0) for group, amount in gross.items()}
 
 
-def _scale_to_total(amounts: dict[str, float], total: float, fallback_label: str) -> dict[str, float]:
-    """Keep the plan's per-item labels but make them sum to the engine's total for the year."""
-    if total <= 0:
-        return {}
-    estimate = sum(amounts.values(), 0.0)
-    if estimate <= 0:
-        return {fallback_label: total}
-    return {label: amount * total / estimate for label, amount in amounts.items()}
+def _event_expense_destinations(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
+    """Name the engine's per-item one-time and recurring expense amounts."""
+    destinations: dict[str, float] = {}
+    for prefix, items, amounts in (
+        ("One-Time", plan.one_time_events, yearly.one_time_expense_amounts),
+        ("Recurring", plan.recurring_expenses, yearly.recurring_expense_amounts),
+    ):
+        names = {item.id: item.name for item in items}
+        for item_id, amount in amounts.items():
+            label = f"{prefix}: {names.get(item_id, item_id)}"
+            destinations[label] = destinations.get(label, 0.0) + amount
+    return destinations
 
 
-def _event_expense_destinations(
-    yearly: YearlyProjection, plan: HouseholdPlan, projection_start_year: int
-) -> dict[str, float]:
-    """Name one-time and recurring expenses, sized by the engine's yearly totals.
-
-    The plan supplies which items occur this year and their relative sizes; the engine's
-    ``one_time_expense`` / ``recurring_expense`` remain the source of truth for the amounts.
-    """
-    one_time: dict[str, float] = {}
-    for event in plan.one_time_events:
-        if event.event_type == "expense" and event.applies_to_year(yearly.year):
-            label = f"One-Time: {event.name}"
-            one_time[label] = one_time.get(label, 0.0) + event.amount
-
-    recurring: dict[str, float] = {}
-    for item in plan.recurring_expenses:
-        if yearly.year < item.start_year:
-            continue
-        if item.end_year is not None and yearly.year > item.end_year:
-            continue
-        if (yearly.year - item.start_year) % item.period_years != 0:
-            continue
-        years_elapsed = yearly.year - projection_start_year
-        label = f"Recurring: {item.name}"
-        recurring[label] = recurring.get(label, 0.0) + inflate(
-            item.amount, plan.assumptions.inflation.general, years_elapsed
-        )
-
-    return {
-        **_scale_to_total(one_time, yearly.one_time_expense, "One-Time: Other"),
-        **_scale_to_total(recurring, yearly.recurring_expense, "Recurring: Other"),
-    }
-
-
-def _split_tax_destinations(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
-    """Split total tax into income tax and the incremental tax on taxable capital gains.
-
-    The engine taxes each person separately, so the gains' share is computed per person
-    as tax(taxable income) - tax(taxable income without that person's gains).
-    """
+def _split_tax_destinations(yearly: YearlyProjection) -> dict[str, float]:
+    """Split total tax into income tax and the engine's incremental tax on taxable capital gains."""
     destinations = {"Estate Settlement Tax": yearly.estate_settlement_tax}
     total_tax = yearly.total_tax - yearly.estate_settlement_tax  # total_tax includes it
     if total_tax <= 0:
         return destinations
-
-    if yearly.taxable_capital_gains <= 0:
-        return {**destinations, "Income Tax": total_tax}
-
-    province = plan.household.province.value
-    projection_assumptions = plan.assumptions.tax_projection.model_dump(mode="python")
-    calculator = TaxCalculator(projection_assumptions=projection_assumptions)
-
-    capital_gains_tax = 0.0
-    for person in plan.persons:
-        gains = yearly.taxable_capital_gains_by_person.get(person.id, 0.0)
-        if gains <= 0:
-            continue
-        taxable_income = yearly.taxable_income_by_person.get(person.id, 0.0)
-        tax_kwargs = {
-            "tax_year": yearly.year,
-            "province": province,
-            "taxpayer_age": yearly.year - person.birth_date.year,
-            "eligible_dividends": yearly.eligible_dividends_by_person.get(person.id, 0.0),
-        }
-        full_tax = calculator.calculate_tax(taxable_income=taxable_income, **tax_kwargs).total_tax
-        base_tax = calculator.calculate_tax(taxable_income=max(taxable_income - gains, 0.0), **tax_kwargs).total_tax
-        capital_gains_tax += max(full_tax - base_tax, 0.0)
-
-    capital_gains_tax = min(capital_gains_tax, total_tax)
+    capital_gains_tax = min(sum(yearly.capital_gains_tax_by_person.values(), 0.0), total_tax)
     return {
         **destinations,
         "Income Tax": total_tax - capital_gains_tax,
@@ -221,8 +162,8 @@ def build_cash_flow_sankey_figure(
     }
     source_amounts = {name: value for name, value in source_amounts.items() if _meets_display_threshold(value)}
 
-    destination_amounts: dict[str, float] = _split_tax_destinations(yearly, plan)
-    event_expense_destinations = _event_expense_destinations(yearly, plan, projection.years[0].year)
+    destination_amounts: dict[str, float] = _split_tax_destinations(yearly)
+    event_expense_destinations = _event_expense_destinations(yearly, plan)
     regular_expenses = yearly.total_expenses - yearly.one_time_expense - yearly.recurring_expense
     destination_amounts["Expenses"] = max(regular_expenses, 0.0)
     destination_amounts.update(event_expense_destinations)

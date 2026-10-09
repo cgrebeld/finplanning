@@ -225,26 +225,21 @@ def test_cash_flow_sankey_includes_capital_gains_tax_destination_when_applicable
     assert "Capital Gains Tax" in labels
 
 
-def test_capital_gains_tax_uses_the_gain_holders_own_bracket() -> None:
+def test_capital_gains_tax_comes_from_the_engine_per_person_amounts() -> None:
     from app.charts.cash_flow_sankey import _split_tax_destinations
 
-    plan = PlanningService.from_yaml("examples/sample-plan.yaml").plan
-    gain = 10000.0
     year = YearlyProjection(
         year=2030,
         person1_age=60,
         person2_age=58,
         total_tax=60000.0,
-        taxable_capital_gains=gain,
-        taxable_income_by_person={"john": 200000.0, "jane": 20000.0 + gain},
-        taxable_capital_gains_by_person={"john": 0.0, "jane": gain},
+        capital_gains_tax_by_person={"john": 0.0, "jane": 1500.0},
     )
 
-    split = _split_tax_destinations(year, plan)
+    split = _split_tax_destinations(year)
 
-    # Jane is in the lowest bracket; taxing on combined household income (~$230k) would exceed 40%.
-    assert 0 < split["Capital Gains Tax"] < 0.25 * gain
-    assert split["Income Tax"] + split["Capital Gains Tax"] == pytest.approx(60000.0)
+    assert split["Capital Gains Tax"] == pytest.approx(1500.0)
+    assert split["Income Tax"] == pytest.approx(58500.0)
 
 
 def test_cash_flow_sankey_links_are_translucent() -> None:
@@ -254,22 +249,20 @@ def test_cash_flow_sankey_links_are_translucent() -> None:
     assert all(color.startswith("rgba(") and color.endswith(", 0.25)") for color in fig.data[0].link.color)
 
 
-def test_named_expense_streams_sum_to_engine_totals() -> None:
+def test_named_expense_streams_use_the_engine_per_item_amounts() -> None:
     from app.charts.cash_flow_sankey import _event_expense_destinations
 
     service = PlanningService.from_yaml("examples/sample-plan.yaml")
     projection = service.run_projection(scenario_id="base", start_year=2025, end_year=2028)
     year = next(y for y in projection.years if y.year == 2028)
-    # Pretend the engine inflated these differently from the UI's own estimate.
-    year = year.model_copy(update={"one_time_expense": year.one_time_expense * 1.1, "recurring_expense": 123.0})
 
-    destinations = _event_expense_destinations(year, service.plan, projection.years[0].year)
+    destinations = _event_expense_destinations(year, service.plan)
 
     one_time = sum(v for k, v in destinations.items() if k.startswith("One-Time: "))
     recurring = sum(v for k, v in destinations.items() if k.startswith("Recurring: "))
     assert one_time == pytest.approx(year.one_time_expense)
-    assert recurring == pytest.approx(123.0)
-    assert "One-Time: New Roof" in destinations
+    assert recurring == pytest.approx(year.recurring_expense)
+    assert destinations["One-Time: New Roof"] > 0
 
 
 def test_net_worth_figure_stacks_real_assets_into_total() -> None:
