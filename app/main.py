@@ -109,7 +109,7 @@ def _render_landing_page() -> None:
             st.caption(desc)
 
     row2_cols = st.columns(4)
-    for col, (icon, name, desc) in zip(row2_cols, features[4:], strict=True):
+    for col, (icon, name, desc) in zip(row2_cols, features[4:], strict=False):  # last slot stays empty
         with col, st.container(border=True):
             st.markdown(f"**{icon} {name}**")
             st.caption(desc)
