@@ -1,5 +1,8 @@
 """Cash flow Sankey chart for tracing yearly inflows to outflows."""
 
+from collections.abc import Iterable
+from typing import Any
+
 import plotly.graph_objects as go
 import streamlit as st
 from finplanning_core.engine import ProjectionResult, YearlyProjection
@@ -101,32 +104,32 @@ def _gross_deposits_by_group(yearly: YearlyProjection, plan: HouseholdPlan) -> d
     return {f"{group} Contributions": max(amount, 0.0) for group, amount in gross.items()}
 
 
+def _by_name(amounts: dict[str, float], items: Iterable[Any], label: str = "{}") -> dict[str, float]:
+    """Key the engine's per-id amounts by the plan item's name, summing items that share a label."""
+    names = {item.id: item.name for item in items}
+    named: dict[str, float] = {}
+    for item_id, amount in amounts.items():
+        key = label.format(names.get(item_id, item_id))
+        named[key] = named.get(key, 0.0) + amount
+    return named
+
+
 def _event_expense_destinations(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
     """Name the engine's per-item one-time and recurring expense amounts."""
-    destinations: dict[str, float] = {}
-    for prefix, items, amounts in (
-        ("One-Time", plan.one_time_events, yearly.one_time_expense_amounts),
-        ("Recurring", plan.recurring_expenses, yearly.recurring_expense_amounts),
-    ):
-        names = {item.id: item.name for item in items}
-        for item_id, amount in amounts.items():
-            label = f"{prefix}: {names.get(item_id, item_id)}"
-            destinations[label] = destinations.get(label, 0.0) + amount
-    return destinations
+    return {
+        **_by_name(yearly.one_time_expense_amounts, plan.one_time_events, "One-Time: {}"),
+        **_by_name(yearly.recurring_expense_amounts, plan.recurring_expenses, "Recurring: {}"),
+    }
 
 
 def _regular_expense_components(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
     """Label the engine's components of the "Expenses" node: plan expense items, real-asset
     carrying costs and any spending adjustment."""
-    expense_names = {expense.id: expense.name for expense in plan.expenses}
-    asset_names = {asset.id: asset.name for asset in plan.real_assets}
-    components: dict[str, float] = {}
-    for expense_id, amount in yearly.expense_amounts.items():
-        name = expense_names.get(expense_id, expense_id)
-        components[name] = components.get(name, 0.0) + amount
-    for asset_id, amount in yearly.real_asset_carrying_costs_by_asset.items():
-        components[f"{asset_names.get(asset_id, asset_id)} Carrying Costs"] = amount
-    components["Spending Adjustment"] = yearly.expense_delta
+    components = {
+        **_by_name(yearly.expense_amounts, plan.expenses),
+        **_by_name(yearly.real_asset_carrying_costs_by_asset, plan.real_assets, "{} Carrying Costs"),
+        "Spending Adjustment": yearly.expense_delta,
+    }
     return {name: amount for name, amount in components.items() if abs(amount) >= MIN_DISPLAY_FLOW}
 
 
