@@ -13,7 +13,7 @@ def render_overview(projection: ProjectionResult, service: PlanningService) -> N
     """Render the overview section with summary metrics, gap analysis chart and estate summary."""
     plan = service.manager.get_plan(projection.scenario_id)
     st.header(f"Overview: {plan.household.name}")
-    render_summary_metrics(projection)
+    render_summary_metrics(projection, plan)
     if projection.final_real_asset_value > 0:
         st.caption(
             f"Final net worth covers investment accounts only; real assets add "

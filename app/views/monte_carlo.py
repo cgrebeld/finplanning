@@ -32,6 +32,8 @@ def mc_summary(result: MonteCarloResult) -> dict[str, Any]:
             [round(v, 4) for v in result.depletion_probability_interval] if complete else []
         ),
         "median_depletion_age": result.median_depletion_age if complete else None,
+        "median_depletion_year": result.median_depletion_year if complete else None,
+        "depletion_age_person_id": result.depletion_age_person_id if complete else None,
         # Final liquid net worth at reporting_end_year, in valuation_year (start-year) dollars.
         "percentiles": _percentiles(result.percentiles) if complete else {},
         "net_worth_dollars": result.net_worth_dollars,
@@ -55,8 +57,8 @@ def mc_summary(result: MonteCarloResult) -> dict[str, Any]:
 def depletion_scope_text(result: MonteCarloResult) -> str:
     """What was simulated, stated instead of an unqualified 'Never'."""
     paths = f"{result.n_iterations:,} simulated paths through {result.risk_end_year}"
-    if result.median_depletion_age is not None:
-        return f"Median age at depletion among the depleting paths of {paths}."
+    if result.median_depletion_year is not None:
+        return f"Median calendar year at depletion among the depleting paths of {paths}."
     return f"No path depleted in {paths}."
 
 
@@ -87,10 +89,10 @@ def _render_metrics(result: MonteCarloResult) -> None:
             help=f"95% interval {low:.1%}–{high:.1%} (sampling error only).",
         )
     with col2:
-        age = result.median_depletion_age
+        year = result.median_depletion_year
         st.metric(
-            "Median Depletion Age (Depleting Paths)",
-            str(age) if age is not None else f"None of {result.n_iterations:,}",
+            "Median Depletion Year (Depleting Paths)",
+            str(year) if year is not None else f"None of {result.n_iterations:,}",
             help=depletion_scope_text(result),
         )
     with col3:

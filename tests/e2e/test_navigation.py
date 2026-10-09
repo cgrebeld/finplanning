@@ -52,7 +52,7 @@ def test_landing_page(page: Page, streamlit_server: str) -> None:
     page.wait_for_load_state("networkidle")
 
     expect(page.get_by_text("Cash-Flow Projections")).to_be_visible()
-    expect(page.get_by_text("Monte Carlo")).to_be_visible()
+    expect(page.get_by_text("🎲 Monte Carlo", exact=True)).to_be_visible()
     expect(page.get_by_text("Excel Export")).to_be_visible()
 
     # Nav radio should NOT be present before a plan is loaded.
@@ -82,6 +82,7 @@ def test_run_projection_navigates_to_overview(page: Page, streamlit_server: str)
 
     # At least one summary metric should be visible.
     expect(page.locator('[data-testid="stMetric"]').first).to_be_visible()
+    expect(page.get_by_text("Depletion Year", exact=True)).to_be_visible()
 
 
 def test_nav_to_cash_flow(page: Page, streamlit_server: str) -> None:

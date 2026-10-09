@@ -3,10 +3,26 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import yaml
 from finplanning_core.engine import ProjectionResult, YearlyProjection
 from finplanning_core.services import PlanningService
 
 from app import state
+
+
+def test_yaml_loading_preserves_planning_accuracy_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(state, "st", SimpleNamespace(session_state={}))
+    state.init_state()
+    raw = yaml.safe_load(Path("examples/sample-plan.yaml").read_text())
+    raw["assumptions"]["inflation"] = {"inflation": 0.03}
+    raw["income"][1]["annual_pension_adjustment"] = 15_000
+    raw["expenses"][0]["constant_real"] = True
+    state.load_service_from_yaml_text(yaml.safe_dump(raw))
+    assert state.st.session_state["error"] is None
+    plan = state.st.session_state["service"].plan
+    assert plan.assumptions.tax_projection.bracket_indexation == 0.03
+    assert plan.income[1].annual_pension_adjustment == 15_000
+    assert plan.expenses[0].constant_real
 
 
 def _make_fake_service(base_scenario_id: str = "base", scenario_ids: list[str] | None = None) -> SimpleNamespace:

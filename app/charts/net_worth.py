@@ -19,7 +19,7 @@ def build_net_worth_figure(
     rrsp_rrif = [float(yr.total_rrsp_rrif) for yr in projection.years]
     tfsa = [float(yr.total_tfsa) for yr in projection.years]
 
-    hover = f"{person1_name} is %{{x}}: %{{customdata}}<br>"
+    hover = f"Year %{{customdata}} · {person1_name} reference age %{{x}}<br>"
 
     fig = go.Figure()
 
@@ -115,17 +115,14 @@ def build_net_worth_figure(
             annotation={"text": f"{emoji}{event.name}", "textangle": -45, "yanchor": "bottom"},
         )
 
-    if projection.depletion_age is not None:
-        for yr in projection.years:
-            if yr.total_net_worth <= 0:
-                fig.add_vline(
-                    x=yr.person1_age,
-                    line_dash="dash",
-                    line_color="red",
-                    annotation_text="Depletion",
-                    annotation_position="top left",
-                )
-                break
+    if projection.depletion_year is not None:
+        fig.add_vline(
+            x=projection.depletion_year - birth_year,
+            line_dash="dash",
+            line_color="red",
+            annotation_text=f"Depletion ({projection.depletion_year})",
+            annotation_position="top left",
+        )
 
     if selected_year is not None:
         selected = next((yr for yr in projection.years if yr.year == selected_year), None)
@@ -139,7 +136,7 @@ def build_net_worth_figure(
             )
 
     fig.update_layout(
-        xaxis_title=f"{person1_name} Age",
+        xaxis_title=f"{person1_name} Reference Age",
         yaxis_title="Balance (nominal $)",
         yaxis_tickprefix="$",
         yaxis_tickformat=",.0f",

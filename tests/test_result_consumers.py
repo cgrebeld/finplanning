@@ -80,7 +80,15 @@ def test_unsupported_monte_carlo_has_no_numbers_and_matches_cli_json() -> None:
     cli = _cli("run_monte_carlo", NO_HOUSING_PROFILE, *MC_ARGS)
 
     assert cli["status"] == exported["status"] == "UNSUPPORTED"
-    for key in ("n_iterations", "depletion_probability", "percentiles", "median_depletion_age", "unsupported_reasons"):
+    for key in (
+        "n_iterations",
+        "depletion_probability",
+        "percentiles",
+        "median_depletion_age",
+        "median_depletion_year",
+        "depletion_age_person_id",
+        "unsupported_reasons",
+    ):
         assert exported[key] == cli[key], key
     assert exported["depletion_probability"] is None
     assert exported["n_iterations"] == 0
@@ -124,6 +132,8 @@ def test_monte_carlo_view_shows_horizons_units_and_profile() -> None:
     assert metrics["Depletion Probability (to 2082)"] == "28.0%"
     assert metrics["Simulated Paths"] == "200"
     assert "Median Liquid Net Worth (2067)" in metrics
+    _, result = _mc(SAMPLE)
+    assert metrics["Median Depletion Year (Depleting Paths)"] == str(result.median_depletion_year)
     assert "Never" not in " ".join(metrics.values())
     text = " ".join(m.value for m in at.markdown) + " ".join(c.value for c in at.caption)
     assert "2026 dollars" in text
@@ -144,9 +154,36 @@ def test_depletion_text_states_the_simulated_scope(sample) -> None:
     _, projection = sample
     assert depletion_text(projection) == f"None through {projection.years[-1].year}"
     _, result = _mc(SAMPLE)
-    assert depletion_scope_text(result.model_copy(update={"median_depletion_age": None})) == (
-        "No path depleted in 200 simulated paths through 2082."
-    )
+    assert depletion_scope_text(
+        result.model_copy(update={"median_depletion_age": None, "median_depletion_year": None})
+    ) == ("No path depleted in 200 simulated paths through 2082.")
+
+
+def test_survivor_depletion_card_and_export_use_year_and_living_person(sample) -> None:
+    service, projection = sample
+    changes = {
+        "depletion_age": 96,
+        "depletion_year": 2066,
+        "depletion_age_person_id": "john",
+        "depletion_ages_by_person": {"jane": 94},
+    }
+    survivor = projection.model_copy(update=changes)
+    assert depletion_text(survivor) == "2066"
+    exported = results_summary(survivor, service.plan)["metrics"]
+    assert {key: exported[key] for key in changes} == changes
+    at = AppTest.from_string(
+        "from finplanning_core.services import PlanningService\n"
+        "from app.components.summary_metrics import render_summary_metrics\n"
+        'service = PlanningService.from_yaml("examples/sample-plan.yaml")\n'
+        'projection = service.run_projection(scenario_id="base")\n'
+        f"render_summary_metrics(projection.model_copy(update={changes!r}), service.plan)\n",
+        default_timeout=120,
+    ).run()
+    assert not at.exception
+    assert {metric.label: metric.value for metric in at.metric}["Depletion Year"] == "2066"
+    caption = next(c.value for c in at.caption if "Alive at depletion" in c.value)
+    assert "Jane" in caption and "94" in caption
+    assert "John" not in caption and "96" not in caption
 
 
 @pytest.mark.parametrize(

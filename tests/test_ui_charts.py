@@ -30,6 +30,15 @@ def test_net_worth_figure_includes_selected_year_marker() -> None:
     assert any(text == "2026" for text in annotation_texts)
 
 
+def test_net_worth_depletion_marker_uses_reported_year_with_remaining_assets() -> None:
+    projection, plan = _make_projection_and_plan()
+    assert all(year.total_net_worth > 0 for year in projection.years)
+    projection = projection.model_copy(update={"depletion_year": 2026})
+    fig = build_net_worth_figure(projection, plan)
+    marker = next(ann for ann in fig.layout.annotations if ann.text == "Depletion (2026)")
+    assert marker.x == 2026 - plan.household.person1.birth_date.year
+
+
 def test_tax_heatmap_includes_selected_year_marker_line() -> None:
     projection, plan = _make_projection_and_plan()
     fig = build_tax_heatmap_figure(projection, plan, selected_year=2026)

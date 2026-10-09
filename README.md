@@ -28,7 +28,7 @@ A long-term financial planning tool for Canadian households. Model income, taxes
 - Built-in YAML editor with section pager/navigation and apply/reload workflow.
 - Sidebar controls for switching between scenarios and setting projection start/end years.
 - One-click projection run with validation/error feedback.
-- Overview dashboard with headline metrics (net worth, depletion age, projection length, withdrawal onset).
+- Overview dashboard with headline metrics (net worth, depletion year and living people's ages, withdrawal onset).
 - Interactive charts including net worth trajectory, gap analysis, tax heatmap, and yearly cash-flow Sankey.
 - Year-level drilldown of projected household cash flows and tax components.
 - Monte Carlo view with configurable simulation parameters and progress reporting.
