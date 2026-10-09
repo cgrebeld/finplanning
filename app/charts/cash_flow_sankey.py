@@ -115,6 +115,21 @@ def _event_expense_destinations(yearly: YearlyProjection, plan: HouseholdPlan) -
     return destinations
 
 
+def _regular_expense_components(yearly: YearlyProjection, plan: HouseholdPlan) -> dict[str, float]:
+    """Label the engine's components of the "Expenses" node: plan expense items, real-asset
+    carrying costs and any spending adjustment."""
+    expense_names = {expense.id: expense.name for expense in plan.expenses}
+    asset_names = {asset.id: asset.name for asset in plan.real_assets}
+    components: dict[str, float] = {}
+    for expense_id, amount in yearly.expense_amounts.items():
+        name = expense_names.get(expense_id, expense_id)
+        components[name] = components.get(name, 0.0) + amount
+    for asset_id, amount in yearly.real_asset_carrying_costs_by_asset.items():
+        components[f"{asset_names.get(asset_id, asset_id)} Carrying Costs"] = amount
+    components["Spending Adjustment"] = yearly.expense_delta
+    return {name: amount for name, amount in components.items() if abs(amount) >= MIN_DISPLAY_FLOW}
+
+
 def _split_tax_destinations(yearly: YearlyProjection) -> dict[str, float]:
     """Split total tax into income tax and the engine's incremental tax on taxable capital gains."""
     destinations = {"Estate Settlement Tax": yearly.estate_settlement_tax}
@@ -165,6 +180,7 @@ def build_cash_flow_sankey_figure(
     event_expense_destinations = _event_expense_destinations(yearly, plan)
     regular_expenses = yearly.total_expenses - yearly.one_time_expense - yearly.recurring_expense
     destination_amounts["Expenses"] = max(regular_expenses, 0.0)
+    expense_components = _regular_expense_components(yearly, plan)
     destination_amounts.update(event_expense_destinations)
     destination_amounts["OAS Clawback"] = yearly.oas_clawback
     destination_amounts["Payroll Deductions"] = yearly.payroll_deductions
@@ -220,6 +236,13 @@ def build_cash_flow_sankey_figure(
         link_targets.append(label_to_index[label])
         link_values.append(amount)
 
+    node_details = [""] * len(labels)
+    if "Expenses" in label_to_index and expense_components:
+        node_details[label_to_index["Expenses"]] = "".join(
+            f"<br>• {name}: ${amount:,.0f}"
+            for name, amount in sorted(expense_components.items(), key=lambda item: -item[1])
+        )
+
     node_colors = []
     node_x: list[float] = []
     for label in labels:
@@ -252,7 +275,10 @@ def build_cash_flow_sankey_figure(
                     "thickness": 14,
                     "color": node_colors,
                     "x": node_x,
-                    "hovertemplate": f"{year_context}<br>%{{label}}<br>Total: $%{{value:,.0f}}<extra></extra>",
+                    "customdata": node_details,
+                    "hovertemplate": (
+                        f"{year_context}<br>%{{label}}<br>Total: $%{{value:,.0f}}%{{customdata}}<extra></extra>"
+                    ),
                     "hoverlabel": {
                         "bgcolor": "rgba(50,50,50,0.95)",
                         "bordercolor": "rgba(50,50,50,0.95)",

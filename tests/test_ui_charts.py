@@ -216,6 +216,18 @@ def test_cash_flow_sankey_includes_named_one_time_and_recurring_expense_streams(
     assert "Recurring: Home Renovation" in labels
 
 
+def test_cash_flow_sankey_expenses_hover_lists_engine_components() -> None:
+    projection, plan = _make_projection_and_plan()
+    fig = build_cash_flow_sankey_figure(projection, plan, selected_year=2025)
+    node = fig.data[0].node
+    details = node.customdata[list(node.label).index("Expenses")]
+    yearly = projection.years[0]
+
+    for expense in plan.expenses:
+        assert f"{expense.name}: ${yearly.expense_amounts[expense.id]:,.0f}" in details
+    assert "%{customdata}" in node.hovertemplate
+
+
 def test_cash_flow_sankey_includes_capital_gains_tax_destination_when_applicable() -> None:
     service = PlanningService.from_yaml("examples/sample-plan.yaml")
     projection = service.run_projection(scenario_id="base", start_year=2025, end_year=2028)
