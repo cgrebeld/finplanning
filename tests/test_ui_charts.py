@@ -292,3 +292,25 @@ def test_net_worth_figure_omits_real_assets_when_plan_has_none() -> None:
     service = PlanningService.from_yaml("examples/canada-typical-40-couple.yaml")
     projection, plan = service.run_projection(scenario_id="base"), service.plan
     assert "Real Assets" not in {trace.name for trace in build_net_worth_figure(projection, plan).data}
+
+
+def test_expense_components_label_carrying_costs_and_adjustment() -> None:
+    from app.charts.cash_flow_sankey import _regular_expense_components
+
+    plan = PlanningService.from_yaml("examples/sample-plan.yaml").plan
+    expense = plan.expenses[0]
+    year = YearlyProjection(
+        year=2030,
+        person1_age=60,
+        person2_age=58,
+        expense_amounts={expense.id: 1000.0, "unknown-id": 50.0},
+        real_asset_carrying_costs_by_asset={"cabin": 200.0},
+        expense_delta=-300.0,
+    )
+
+    assert _regular_expense_components(year, plan) == {
+        expense.name: 1000.0,
+        "unknown-id": 50.0,
+        "cabin Carrying Costs": 200.0,
+        "Spending Adjustment": -300.0,
+    }
