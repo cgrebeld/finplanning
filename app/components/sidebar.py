@@ -28,13 +28,13 @@ NAV_SECTIONS = [
 ]
 
 _NAV_ICONS = {
-    "Edit Plan":    "✏️",
-    "Overview":     "⚖️",
-    "Cash Flow":    "🔀",
-    "Net Worth":    "📈",
+    "Edit Plan": "✏️",
+    "Overview": "⚖️",
+    "Cash Flow": "🔀",
+    "Net Worth": "📈",
     "Tax Analysis": "🔥",
-    "Monte Carlo":  "🎲",
-    "Data & Export":"📥",
+    "Monte Carlo": "🎲",
+    "Data & Export": "📥",
 }
 
 
@@ -71,9 +71,7 @@ def _load_file_dialog() -> None:
         return
     parse_error: str | None = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False, encoding="utf-8"
-        ) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False, encoding="utf-8") as tmp:
             tmp.write(content)
             tmp_path = tmp.name
         try:
